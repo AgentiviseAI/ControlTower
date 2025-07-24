@@ -18,6 +18,6 @@ class LLMRepository(BaseRepository):
         """Get all enabled LLMs"""
         return self.filter_by(enabled=True)
     
-    def get_by_provider(self, provider: str) -> List[LLM]:
-        """Get LLMs by provider"""
-        return self.filter_by(provider=provider)
+    def get_by_hosting_environment(self, hosting_environment: str) -> List[LLM]:
+        """Get LLMs by hosting environment"""
+        return self.filter_by(hosting_environment=hosting_environment)

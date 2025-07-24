@@ -6,7 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
+from app.core.database import get_db, SessionLocal
 from app.core.exceptions import UnauthorizedError
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
@@ -70,9 +70,18 @@ def get_metrics_repository(db: Session = Depends(get_db)) -> MetricsRepository:
 
 # Service Dependencies
 def get_pipeline_service(
-    repository: PipelineRepository = Depends(get_pipeline_repository)
+    repository: PipelineRepository = Depends(get_pipeline_repository),
+    llm_repository: LLMRepository = Depends(get_llm_repository),
+    mcp_repository: MCPToolRepository = Depends(get_mcp_tool_repository),
+    rag_repository: RAGConnectorRepository = Depends(get_rag_connector_repository)
 ) -> PipelineService:
-    return PipelineService(repository)
+    return PipelineService(repository, llm_repository, mcp_repository, rag_repository)
+
+
+def get_llm_service(
+    repository: LLMRepository = Depends(get_llm_repository)
+) -> LLMService:
+    return LLMService(repository)
 
 
 def get_ai_agent_service(
@@ -86,12 +95,6 @@ def get_mcp_tool_service(
     repository: MCPToolRepository = Depends(get_mcp_tool_repository)
 ) -> MCPToolService:
     return MCPToolService(repository)
-
-
-def get_llm_service(
-    repository: LLMRepository = Depends(get_llm_repository)
-) -> LLMService:
-    return LLMService(repository)
 
 
 def get_rag_connector_service(

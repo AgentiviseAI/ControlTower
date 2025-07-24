@@ -28,42 +28,8 @@ class AIAgentService(BaseService):
         pipeline_id = None
         if self.pipeline_service:
             try:
-                # Create a default pipeline for this agent
-                default_pipeline = self.pipeline_service.create_pipeline(
-                    name=f"{name} - Default Pipeline",
-                    description=f"Default pipeline for agent {name}",
-                    nodes=[
-                        {
-                            "id": "start-node",
-                            "type": "start", 
-                            "position": {"x": 100, "y": 100},
-                            "config": {"message": "Start here"}
-                        },
-                        {
-                            "id": "llm-node",
-                            "type": "llm",
-                            "position": {"x": 300, "y": 100}, 
-                            "config": {"model": "default", "provider": "openai"}
-                        },
-                        {
-                            "id": "end-node",
-                            "type": "end",
-                            "position": {"x": 500, "y": 100},
-                            "config": {"message": "End here"}
-                        }
-                    ],
-                    edges=[
-                        {
-                            "source_component_id": "start-node",
-                            "target_component_id": "llm-node"
-                        },
-                        {
-                            "source_component_id": "llm-node",
-                            "target_component_id": "end-node"
-                        }
-                    ],
-                    status="draft"
-                )
+                # Use the pipeline service to create a default pipeline
+                default_pipeline = self.pipeline_service.create_default_pipeline(name)
                 pipeline_id = default_pipeline.get("id")
                 self.logger.info(f"Created default pipeline {pipeline_id} for agent {name}")
             except Exception as e:

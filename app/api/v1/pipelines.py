@@ -45,6 +45,19 @@ async def create_pipeline(
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
+@router.get("/node-options", response_model=dict)
+async def get_pipeline_node_options(
+    token: str = Depends(verify_token),
+    pipeline_service: PipelineService = Depends(get_pipeline_service)
+):
+    """Get available options for pipeline nodes (LLMs, RAG connectors, MCP tools)"""
+    try:
+        options = pipeline_service.get_node_options()
+        return options
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+
 @router.get("/{pipeline_id}", response_model=Pipeline)
 async def get_pipeline(
     pipeline_id: str,
