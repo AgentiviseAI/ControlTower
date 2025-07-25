@@ -1,16 +1,16 @@
 """
-Pipeline Service implementation
+Workflow Service implementation
 """
 from typing import List, Optional, Dict, Any
-from app.repositories import PipelineRepository, LLMRepository, MCPToolRepository, RAGConnectorRepository
+from app.repositories import WorkflowRepository, LLMRepository, MCPToolRepository, RAGConnectorRepository
 from app.core.exceptions import NotFoundError
 from .base import BaseService
 
 
-class PipelineService(BaseService):
-    """Service for Pipeline business logic"""
+class WorkflowService(BaseService):
+    """Service for Workflow business logic"""
     
-    def __init__(self, repository: PipelineRepository, 
+    def __init__(self, repository: WorkflowRepository, 
                  llm_repository: LLMRepository = None, 
                  mcp_repository: MCPToolRepository = None, 
                  rag_repository: RAGConnectorRepository = None):
@@ -19,16 +19,16 @@ class PipelineService(BaseService):
         self.mcp_repository = mcp_repository
         self.rag_repository = rag_repository
     
-    def create_pipeline(self, name: str, description: str = None, 
+    def create_workflow(self, name: str, description: str = None, 
                        nodes: List[Dict[str, Any]] = None, 
                        edges: List[Dict[str, Any]] = None,
                        status: str = "draft") -> Dict[str, Any]:
-        """Create a new pipeline"""
+        """Create a new workflow"""
         self._validate_data({'name': name}, ['name'])
         
-        self.logger.info(f"Creating pipeline: {name}")
+        self.logger.info(f"Creating workflow: {name}")
         
-        pipeline = self.repository.create(
+        workflow = self.repository.create(
             name=name,
             description=description,
             nodes=nodes or [],
@@ -36,42 +36,42 @@ class PipelineService(BaseService):
             status=status
         )
         
-        return self._pipeline_to_dict(pipeline)
+        return self._workflow_to_dict(workflow)
     
-    def get_pipeline(self, pipeline_id: str) -> Optional[Dict[str, Any]]:
-        """Get pipeline by ID"""
-        pipeline = self.repository.get_by_id(pipeline_id)
-        if not pipeline:
-            raise NotFoundError("Pipeline", pipeline_id)
-        return self._pipeline_to_dict(pipeline)
+    def get_workflow(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+        """Get workflow by ID"""
+        workflow = self.repository.get_by_id(workflow_id)
+        if not workflow:
+            raise NotFoundError("Workflow", workflow_id)
+        return self._workflow_to_dict(workflow)
     
-    def get_all_pipelines(self) -> List[Dict[str, Any]]:
-        """Get all pipelines"""
-        pipelines = self.repository.get_all()
-        return [self._pipeline_to_dict(pipeline) for pipeline in pipelines]
+    def get_all_workflows(self) -> List[Dict[str, Any]]:
+        """Get all workflows"""
+        workflows = self.repository.get_all()
+        return [self._workflow_to_dict(workflow) for workflow in workflows]
     
-    def update_pipeline(self, pipeline_id: str, **kwargs) -> Optional[Dict[str, Any]]:
-        """Update pipeline"""
-        self.logger.info(f"Updating pipeline: {pipeline_id}")
+    def update_workflow(self, workflow_id: str, **kwargs) -> Optional[Dict[str, Any]]:
+        """Update workflow"""
+        self.logger.info(f"Updating workflow: {workflow_id}")
         
-        pipeline = self.repository.update(pipeline_id, **kwargs)
-        if not pipeline:
-            raise NotFoundError("Pipeline", pipeline_id)
+        workflow = self.repository.update(workflow_id, **kwargs)
+        if not workflow:
+            raise NotFoundError("Workflow", workflow_id)
         
-        return self._pipeline_to_dict(pipeline)
+        return self._workflow_to_dict(workflow)
     
-    def delete_pipeline(self, pipeline_id: str) -> bool:
-        """Delete pipeline"""
-        self.logger.info(f"Deleting pipeline: {pipeline_id}")
+    def delete_workflow(self, workflow_id: str) -> bool:
+        """Delete workflow"""
+        self.logger.info(f"Deleting workflow: {workflow_id}")
         
-        success = self.repository.delete(pipeline_id)
+        success = self.repository.delete(workflow_id)
         if not success:
-            raise NotFoundError("Pipeline", pipeline_id)
+            raise NotFoundError("Workflow", workflow_id)
         
         return success
     
     def get_node_options(self) -> Dict[str, Any]:
-        """Get available options for pipeline nodes"""
+        """Get available options for workflow nodes"""
         options = {
             "llms": [],
             "mcp_tools": [],
@@ -124,12 +124,12 @@ class PipelineService(BaseService):
             
         return options
     
-    def _pipeline_to_dict(self, pipeline) -> Dict[str, Any]:
-        """Convert pipeline to dict with proper node handling"""
-        if not pipeline:
+    def _workflow_to_dict(self, workflow) -> Dict[str, Any]:
+        """Convert workflow to dict with proper node handling"""
+        if not workflow:
             return None
         
-        result = self._to_dict(pipeline)
+        result = self._to_dict(workflow)
         # Ensure nodes are properly formatted
         if 'nodes' in result and result['nodes']:
             # Convert components to nodes format for compatibility
@@ -137,8 +137,8 @@ class PipelineService(BaseService):
         
         return result
     
-    def create_default_pipeline(self, agent_name: str) -> Dict[str, Any]:
-        """Create a default pipeline for an agent with proper LLM linking"""
+    def create_default_workflow(self, agent_name: str) -> Dict[str, Any]:
+        """Create a default workflow for an agent with proper LLM linking"""
         import uuid
         
         # Generate UUIDs for nodes
@@ -157,9 +157,9 @@ class PipelineService(BaseService):
         except Exception as e:
             self.logger.warning(f"Could not check for 'Gemma 2 2B (Self-hosted)' LLM: {e}")
         
-        # Create pipeline based on whether Gemma LLM exists
+        # Create workflow based on whether Gemma LLM exists
         if gemma_llm_id:
-            # Create 3-node pipeline: start -> llm -> end
+            # Create 3-node workflow: start -> llm -> end
             llm_node_id = str(uuid.uuid4())
             nodes = [
                 {
@@ -197,9 +197,9 @@ class PipelineService(BaseService):
                     "target": end_node_id
                 }
             ]
-            self.logger.info(f"Creating default pipeline with 'Gemma 2 2B (Self-hosted)' LLM linked")
+            self.logger.info(f"Creating default workflow with 'Gemma 2 2B (Self-hosted)' LLM linked")
         else:
-            # Create 2-node pipeline: start -> end (no LLM available)
+            # Create 2-node workflow: start -> end (no LLM available)
             nodes = [
                 {
                     "id": start_node_id,
@@ -224,12 +224,12 @@ class PipelineService(BaseService):
                     "target": end_node_id
                 }
             ]
-            self.logger.info(f"Creating simple start->end pipeline (no 'Gemma 2 2B (Self-hosted)' LLM found)")
+            self.logger.info(f"Creating simple start->end workflow (no 'Gemma 2 2B (Self-hosted)' LLM found)")
         
-        # Create the pipeline
-        return self.create_pipeline(
-            name=f"{agent_name} - Default Pipeline",
-            description=f"Default pipeline for agent {agent_name}",
+        # Create the workflow
+        return self.create_workflow(
+            name=f"{agent_name} - Default Workflow",
+            description=f"Default workflow for agent {agent_name}",
             nodes=nodes,
             edges=edges,
             status="draft"

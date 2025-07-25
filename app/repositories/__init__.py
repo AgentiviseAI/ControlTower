@@ -6,7 +6,7 @@ from .ai_agent_repository import AIAgentRepository
 from .mcp_tool_repository import MCPToolRepository
 from .llm_repository import LLMRepository
 from .rag_connector_repository import RAGConnectorRepository
-from .pipeline_repository import PipelineRepository
+from .workflow_repository import WorkflowRepository
 from .security_role_repository import SecurityRoleRepository
 from .user_repository import UserRepository
 from .metrics_repository import MetricsRepository
@@ -18,7 +18,7 @@ __all__ = [
     "MCPToolRepository",
     "LLMRepository", 
     "RAGConnectorRepository",
-    "PipelineRepository",
+    "WorkflowRepository",
     "SecurityRoleRepository",
     "UserRepository",
     "MetricsRepository",

@@ -2,10 +2,10 @@
 Initialize database with sample data
 """
 from app.core.database import get_db, create_tables
-from app.services import AIAgentService, MCPToolService, LLMService, RAGConnectorService, SecurityService, PipelineService
+from app.services import AIAgentService, MCPToolService, LLMService, RAGConnectorService, SecurityService, WorkflowService
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository, 
-    RAGConnectorRepository, SecurityRoleRepository, UserRepository, PipelineRepository
+    RAGConnectorRepository, SecurityRoleRepository, UserRepository, WorkflowRepository
 )
 from datetime import datetime
 
@@ -27,11 +27,11 @@ def initialize_sample_data():
         rag_repo = RAGConnectorRepository(db)
         role_repo = SecurityRoleRepository(db)
         user_repo = UserRepository(db)
-        pipeline_repo = PipelineRepository(db)
+        workflow_repo = WorkflowRepository(db)
         
         # Initialize services
-        pipeline_service = PipelineService(pipeline_repo, llm_repo)
-        agent_service = AIAgentService(agent_repo, pipeline_service)
+        workflow_service = WorkflowService(workflow_repo, llm_repo)
+        agent_service = AIAgentService(agent_repo, workflow_service)
         llm_service = LLMService(llm_repo)
         tool_service = MCPToolService(tool_repo)
         rag_service = RAGConnectorService(rag_repo)
@@ -226,7 +226,7 @@ def initialize_sample_data():
                 "llms": ["create", "read", "update", "delete", "configure"],
                 "tools": ["create", "read", "update", "delete", "configure"],
                 "rag": ["create", "read", "update", "delete", "configure"],
-                "pipelines": ["create", "read", "update", "delete", "deploy"],
+                "workflows": ["create", "read", "update", "delete", "deploy"],
                 "metrics": ["read", "configure"],
                 "security": ["read", "configure", "manage_users", "manage_roles"]
             }
@@ -241,7 +241,7 @@ def initialize_sample_data():
                 "llms": ["read", "configure"],
                 "tools": ["create", "read", "update", "delete", "configure"],
                 "rag": ["read", "update", "configure"],
-                "pipelines": ["create", "read", "update", "delete"],
+                "workflows": ["create", "read", "update", "delete"],
                 "metrics": ["read"],
                 "security": ["read"]
             }
@@ -256,7 +256,7 @@ def initialize_sample_data():
                 "llms": ["read"],
                 "tools": ["read"],
                 "rag": ["read"],
-                "pipelines": ["read"],
+                "workflows": ["read"],
                 "metrics": ["read"],
                 "security": []
             }

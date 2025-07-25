@@ -10,12 +10,12 @@ from app.core.database import get_db, SessionLocal
 from app.core.exceptions import UnauthorizedError
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
-    RAGConnectorRepository, PipelineRepository, SecurityRoleRepository,
+    RAGConnectorRepository, WorkflowRepository, SecurityRoleRepository,
     UserRepository, MetricsRepository
 )
 from app.services import (
     AIAgentService, MCPToolService, LLMService,
-    RAGConnectorService, PipelineService, SecurityService, AuthService
+    RAGConnectorService, WorkflowService, SecurityService, AuthService
 )
 
 # Security
@@ -52,8 +52,8 @@ def get_rag_connector_repository(db: Session = Depends(get_db)) -> RAGConnectorR
     return RAGConnectorRepository(db)
 
 
-def get_pipeline_repository(db: Session = Depends(get_db)) -> PipelineRepository:
-    return PipelineRepository(db)
+def get_workflow_repository(db: Session = Depends(get_db)) -> WorkflowRepository:
+    return WorkflowRepository(db)
 
 
 def get_security_role_repository(db: Session = Depends(get_db)) -> SecurityRoleRepository:
@@ -69,13 +69,13 @@ def get_metrics_repository(db: Session = Depends(get_db)) -> MetricsRepository:
 
 
 # Service Dependencies
-def get_pipeline_service(
-    repository: PipelineRepository = Depends(get_pipeline_repository),
+def get_workflow_service(
+    repository: WorkflowRepository = Depends(get_workflow_repository),
     llm_repository: LLMRepository = Depends(get_llm_repository),
     mcp_repository: MCPToolRepository = Depends(get_mcp_tool_repository),
     rag_repository: RAGConnectorRepository = Depends(get_rag_connector_repository)
-) -> PipelineService:
-    return PipelineService(repository, llm_repository, mcp_repository, rag_repository)
+) -> WorkflowService:
+    return WorkflowService(repository, llm_repository, mcp_repository, rag_repository)
 
 
 def get_llm_service(
@@ -86,9 +86,9 @@ def get_llm_service(
 
 def get_ai_agent_service(
     repository: AIAgentRepository = Depends(get_ai_agent_repository),
-    pipeline_service: PipelineService = Depends(get_pipeline_service)
+    workflow_service: WorkflowService = Depends(get_workflow_service)
 ) -> AIAgentService:
-    return AIAgentService(repository, pipeline_service)
+    return AIAgentService(repository, workflow_service)
 
 
 def get_mcp_tool_service(

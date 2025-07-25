@@ -96,7 +96,7 @@ async def list_security_roles(
             "permissions": {
                 "agents": ["read", "write", "delete"],
                 "llms": ["read", "write", "delete"],
-                "pipelines": ["read", "write", "delete"],
+                "workflows": ["read", "write", "delete"],
                 "mcp_tools": ["read", "write", "delete"],
                 "rag": ["read", "write", "delete"],
                 "security": ["read", "write", "delete"],
@@ -113,7 +113,7 @@ async def list_security_roles(
             "permissions": {
                 "agents": ["read", "write"],
                 "llms": ["read"],
-                "pipelines": ["read", "write"], 
+                "workflows": ["read", "write"], 
                 "mcp_tools": ["read"],
                 "rag": ["read"],
                 "security": ["read"],
@@ -130,7 +130,7 @@ async def list_security_roles(
             "permissions": {
                 "agents": ["read"],
                 "llms": ["read"],
-                "pipelines": ["read"],
+                "workflows": ["read"],
                 "mcp_tools": ["read"],
                 "rag": ["read"],
                 "security": ["read"],

@@ -27,7 +27,7 @@ class AIAgentBase(BaseModel):
     description: Optional[str] = None
     enabled: bool = True
     preview_enabled: bool = False
-    pipeline_id: Optional[str] = None
+    workflow_id: Optional[str] = None
 
 
 class AIAgentCreate(AIAgentBase):
@@ -39,7 +39,7 @@ class AIAgentUpdate(BaseModel):
     description: Optional[str] = None
     enabled: Optional[bool] = None
     preview_enabled: Optional[bool] = None
-    pipeline_id: Optional[str] = None
+    workflow_id: Optional[str] = None
 
 
 class AIAgent(AIAgentBase):
@@ -246,8 +246,8 @@ class RAGConnector(RAGConnectorBase):
         from_attributes = True
 
 
-# Pipeline schemas
-class PipelineNodeBase(BaseModel):
+# Workflow schemas
+class WorkflowNodeBase(BaseModel):
     id: str = Field(..., description="UUID for the node")
     label: str = Field(..., description="Human-readable label for the node")
     type: str = Field(..., description="Type of the node (llm, rag, mcp_tools, etc.)")
@@ -256,40 +256,40 @@ class PipelineNodeBase(BaseModel):
     config: Dict[str, Any] = Field(default_factory=dict, description="Additional configuration for the node")
 
 
-class PipelineNode(PipelineNodeBase):
+class WorkflowNode(WorkflowNodeBase):
     pass
 
 
-class PipelineEdgeBase(BaseModel):
+class WorkflowEdgeBase(BaseModel):
     source: str = Field(..., description="Source node ID")
     target: str = Field(..., description="Target node ID")
 
 
-class PipelineEdge(PipelineEdgeBase):
+class WorkflowEdge(WorkflowEdgeBase):
     pass
 
 
-class PipelineBase(BaseModel):
+class WorkflowBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
-    nodes: List[PipelineNode] = []
-    edges: List[PipelineEdge] = []
+    nodes: List[WorkflowNode] = []
+    edges: List[WorkflowEdge] = []
     status: str = "draft"
 
 
-class PipelineCreate(PipelineBase):
+class WorkflowCreate(WorkflowBase):
     pass
 
 
-class PipelineUpdate(BaseModel):
+class WorkflowUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
-    nodes: Optional[List[PipelineNode]] = None
-    edges: Optional[List[PipelineEdge]] = None
+    nodes: Optional[List[WorkflowNode]] = None
+    edges: Optional[List[WorkflowEdge]] = None
     status: Optional[str] = None
 
 
-class Pipeline(PipelineBase):
+class Workflow(WorkflowBase):
     id: str
     created_at: datetime
     updated_at: datetime

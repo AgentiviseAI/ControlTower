@@ -16,7 +16,7 @@ class AIAgent(Base):
     description = Column(Text)
     enabled = Column(Boolean, default=True)
     preview_enabled = Column(Boolean, default=False)
-    pipeline_id = Column(String(36), nullable=True)
+    workflow_id = Column(String(36), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -107,14 +107,14 @@ class RAGConnector(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class Pipeline(Base):
-    __tablename__ = "pipelines"
+class Workflow(Base):
+    __tablename__ = "workflows"
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    nodes = Column(JSON)  # Store pipeline configuration
-    edges = Column(JSON)  # Store pipeline edges/connections
+    nodes = Column(JSON)  # Store workflow configuration
+    edges = Column(JSON)  # Store workflow edges/connections
     status = Column(String(50), default="draft")
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

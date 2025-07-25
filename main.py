@@ -12,7 +12,7 @@ from app.core.logging import setup_logging, get_logger
 from app.middleware import LoggingMiddleware, MetricsMiddleware
 from app.api.v1 import api_router
 # Import models to ensure they're registered with SQLAlchemy
-from app.models import AIAgent, MCPTool, LLM, RAGConnector, Pipeline, SecurityRole, User, Metrics
+from app.models import AIAgent, MCPTool, LLM, RAGConnector, Workflow, SecurityRole, User, Metrics
 
 # Setup logging
 setup_logging()
@@ -35,7 +35,7 @@ def create_application() -> FastAPI:
     """Create and configure FastAPI application"""
     app = FastAPI(
         title="AI Platform API",
-        description="A comprehensive platform for managing AI agents, LLMs, and pipelines",
+        description="A comprehensive platform for managing AI agents, LLMs, and workflows",
         version="1.0.0",
         lifespan=lifespan
     )
