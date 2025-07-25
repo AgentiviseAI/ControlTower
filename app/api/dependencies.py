@@ -85,10 +85,9 @@ def get_llm_service(
 
 
 def get_ai_agent_service(
-    repository: AIAgentRepository = Depends(get_ai_agent_repository),
-    workflow_service: WorkflowService = Depends(get_workflow_service)
+    repository: AIAgentRepository = Depends(get_ai_agent_repository)
 ) -> AIAgentService:
-    return AIAgentService(repository, workflow_service)
+    return AIAgentService(repository)
 
 
 def get_mcp_tool_service(

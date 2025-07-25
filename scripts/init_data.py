@@ -31,7 +31,7 @@ def initialize_sample_data():
         
         # Initialize services
         workflow_service = WorkflowService(workflow_repo, llm_repo)
-        agent_service = AIAgentService(agent_repo, workflow_service)
+        agent_service = AIAgentService(agent_repo)
         llm_service = LLMService(llm_repo)
         tool_service = MCPToolService(tool_repo)
         rag_service = RAGConnectorService(rag_repo)
@@ -159,19 +159,48 @@ def initialize_sample_data():
         )
         
         # Create sample AI Agents (after LLMs so they can be linked)
-        agent_service.create_agent(
+        customer_agent = agent_service.create_agent(
             name="Customer Support Agent",
             description="Handles customer inquiries and support requests",
             enabled=True,
             preview_enabled=True
         )
         
-        agent_service.create_agent(
+        data_agent = agent_service.create_agent(
             name="Data Analysis Agent",
             description="Analyzes data and generates insights",
             enabled=True,
             preview_enabled=False
         )
+        
+        # Create default workflows for each agent
+        print("Creating default workflows for agents...")
+        
+        try:
+            customer_workflow = workflow_service.create_default_workflow(
+                agent_id=customer_agent["id"],
+                agent_name=customer_agent["name"]
+            )
+            print(f"Created default workflow {customer_workflow['id']} for Customer Support Agent")
+            
+            # Update agent with workflow_id
+            agent_service.update_agent(customer_agent["id"], workflow_id=customer_workflow["id"])
+            
+        except Exception as e:
+            print(f"Failed to create workflow for Customer Support Agent: {e}")
+        
+        try:
+            data_workflow = workflow_service.create_default_workflow(
+                agent_id=data_agent["id"],
+                agent_name=data_agent["name"]
+            )
+            print(f"Created default workflow {data_workflow['id']} for Data Analysis Agent")
+            
+            # Update agent with workflow_id
+            agent_service.update_agent(data_agent["id"], workflow_id=data_workflow["id"])
+            
+        except Exception as e:
+            print(f"Failed to create workflow for Data Analysis Agent: {e}")
         
         # Create sample MCP Tools
         tool_service.create_tool(

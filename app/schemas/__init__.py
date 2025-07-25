@@ -272,6 +272,7 @@ class WorkflowEdge(WorkflowEdgeBase):
 class WorkflowBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
+    agent_id: Optional[str] = None
     nodes: List[WorkflowNode] = []
     edges: List[WorkflowEdge] = []
     status: str = "draft"
@@ -284,6 +285,7 @@ class WorkflowCreate(WorkflowBase):
 class WorkflowUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
+    agent_id: Optional[str] = None
     nodes: Optional[List[WorkflowNode]] = None
     edges: Optional[List[WorkflowEdge]] = None
     status: Optional[str] = None

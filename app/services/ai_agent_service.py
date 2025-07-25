@@ -10,9 +10,8 @@ from .base import BaseService
 class AIAgentService(BaseService):
     """Service for AI Agent business logic"""
     
-    def __init__(self, repository: AIAgentRepository, workflow_service=None):
+    def __init__(self, repository: AIAgentRepository):
         super().__init__(repository)
-        self.workflow_service = workflow_service
     
     def create_agent(self, name: str, description: str = None, enabled: bool = True, 
                     preview_enabled: bool = False) -> Dict[str, Any]:
@@ -24,23 +23,13 @@ class AIAgentService(BaseService):
         
         self.logger.info(f"Creating AI agent: {name}")
         
-        # Create default workflow if workflow_service is available
-        workflow_id = None
-        if self.workflow_service:
-            try:
-                # Use the workflow service to create a default workflow
-                default_workflow = self.workflow_service.create_default_workflow(name)
-                workflow_id = default_workflow.get("id")
-                self.logger.info(f"Created default workflow {workflow_id} for agent {name}")
-            except Exception as e:
-                self.logger.warning(f"Failed to create default workflow for agent {name}: {e}")
-        
+        # Create the agent
         agent = self.repository.create(
             name=name,
             description=description,
             enabled=enabled,
             preview_enabled=preview_enabled,
-            workflow_id=workflow_id
+            workflow_id=None
         )
         
         return self._to_dict(agent)

@@ -36,6 +36,7 @@ async def create_workflow(
         new_workflow = workflow_service.create_workflow(
             name=workflow_dict['name'],
             description=workflow_dict.get('description'),
+            agent_id=workflow_dict.get('agent_id'),
             nodes=workflow_dict.get('nodes', []),
             edges=workflow_dict.get('edges', []),
             status=workflow_dict.get('status', 'draft')

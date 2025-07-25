@@ -113,6 +113,7 @@ class Workflow(Base):
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String(255), nullable=False)
     description = Column(Text)
+    agent_id = Column(String(36), nullable=True)  # Link to agent
     nodes = Column(JSON)  # Store workflow configuration
     edges = Column(JSON)  # Store workflow edges/connections
     status = Column(String(50), default="draft")

@@ -20,6 +20,7 @@ class WorkflowService(BaseService):
         self.rag_repository = rag_repository
     
     def create_workflow(self, name: str, description: str = None, 
+                       agent_id: str = None,
                        nodes: List[Dict[str, Any]] = None, 
                        edges: List[Dict[str, Any]] = None,
                        status: str = "draft") -> Dict[str, Any]:
@@ -31,6 +32,7 @@ class WorkflowService(BaseService):
         workflow = self.repository.create(
             name=name,
             description=description,
+            agent_id=agent_id,
             nodes=nodes or [],
             edges=edges or [],
             status=status
@@ -48,6 +50,11 @@ class WorkflowService(BaseService):
     def get_all_workflows(self) -> List[Dict[str, Any]]:
         """Get all workflows"""
         workflows = self.repository.get_all()
+        return [self._workflow_to_dict(workflow) for workflow in workflows]
+    
+    def get_workflows_by_agent(self, agent_id: str) -> List[Dict[str, Any]]:
+        """Get workflows for a specific agent"""
+        workflows = self.repository.get_by_agent_id(agent_id)
         return [self._workflow_to_dict(workflow) for workflow in workflows]
     
     def update_workflow(self, workflow_id: str, **kwargs) -> Optional[Dict[str, Any]]:
@@ -137,13 +144,17 @@ class WorkflowService(BaseService):
         
         return result
     
-    def create_default_workflow(self, agent_name: str) -> Dict[str, Any]:
+    def create_default_workflow(self, agent_id: str, agent_name: str = None) -> Dict[str, Any]:
         """Create a default workflow for an agent with proper LLM linking"""
         import uuid
         
         # Generate UUIDs for nodes
         start_node_id = str(uuid.uuid4())
         end_node_id = str(uuid.uuid4())
+        
+        # Use agent_name if provided, otherwise generate a generic name
+        workflow_name = f"{agent_name} - Default Workflow" if agent_name else f"Default Workflow - {uuid.uuid4().hex[:8]}"
+        workflow_description = f"Default workflow for agent {agent_name}" if agent_name else "Default workflow with intelligent LLM integration"
         
         # Check if 'Gemma 2 2B (Self-hosted)' LLM exists
         gemma_llm_id = None
@@ -197,7 +208,7 @@ class WorkflowService(BaseService):
                     "target": end_node_id
                 }
             ]
-            self.logger.info(f"Creating default workflow with 'Gemma 2 2B (Self-hosted)' LLM linked")
+            self.logger.info(f"Creating default workflow with 'Gemma 2 2B (Self-hosted)' LLM linked for agent {agent_id}")
         else:
             # Create 2-node workflow: start -> end (no LLM available)
             nodes = [
@@ -224,13 +235,15 @@ class WorkflowService(BaseService):
                     "target": end_node_id
                 }
             ]
-            self.logger.info(f"Creating simple start->end workflow (no 'Gemma 2 2B (Self-hosted)' LLM found)")
+            self.logger.info(f"Creating simple start->end workflow (no 'Gemma 2 2B (Self-hosted)' LLM found) for agent {agent_id}")
         
         # Create the workflow
         return self.create_workflow(
-            name=f"{agent_name} - Default Workflow",
-            description=f"Default workflow for agent {agent_name}",
+            name=workflow_name,
+            description=workflow_description,
+            agent_id=agent_id,  # Link the workflow to the agent
             nodes=nodes,
             edges=edges,
             status="draft"
         )
+    
