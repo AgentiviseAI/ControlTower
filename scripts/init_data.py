@@ -208,7 +208,7 @@ def initialize_sample_data():
             description="Connects to SQL databases",
             enabled=True,
             endpoint_url="https://api.example.com/db-connector",
-            status="active",
+            transport="Streamable HTTP",
             required_permissions=["read", "write"],
             auth_headers={"X-API-Key": "demo_key"}
         )
@@ -218,8 +218,28 @@ def initialize_sample_data():
             description="Sends and manages emails",
             enabled=False,
             endpoint_url="https://api.example.com/email-service",
-            status="inactive",
+            transport="Streamable HTTP",
             required_permissions=["send"],
+            auth_headers={}
+        )
+
+        tool_service.create_tool(
+            name="Time",
+            description="Get accurate time",
+            enabled=True,
+            endpoint_url="http://localhost:8080/time",
+            transport="Streamable HTTP",
+            required_permissions=[],
+            auth_headers={}
+        )
+        
+        tool_service.create_tool(
+            name="Open Weather API",
+            description="Fetches weather data",
+            enabled=False,
+            endpoint_url="http://localhost:8081/open-weather",
+            transport="Streamable HTTP",
+            required_permissions=[],
             auth_headers={}
         )
         

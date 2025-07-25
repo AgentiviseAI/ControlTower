@@ -18,6 +18,6 @@ class MCPToolRepository(BaseRepository):
         """Get all enabled MCP tools"""
         return self.filter_by(enabled=True)
     
-    def get_by_status(self, status: str) -> List[MCPTool]:
-        """Get MCP tools by status"""
-        return self.filter_by(status=status)
+    def get_by_transport(self, transport: str) -> List[MCPTool]:
+        """Get MCP tools by transport"""
+        return self.filter_by(transport=transport)

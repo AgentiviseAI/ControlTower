@@ -14,7 +14,7 @@ class MCPToolService(BaseService):
         super().__init__(repository)
     
     def create_tool(self, name: str, description: str = None, enabled: bool = True,
-                   endpoint_url: str = None, status: str = "active", 
+                   endpoint_url: str = None, transport: str = "Streamable HTTP", 
                    required_permissions: List[str] = None, 
                    auth_headers: Dict[str, str] = None) -> Dict[str, Any]:
         """Create a new MCP tool"""
@@ -28,7 +28,7 @@ class MCPToolService(BaseService):
             description=description,
             enabled=enabled,
             endpoint_url=endpoint_url,
-            status=status,
+            transport=transport,
             required_permissions=required_permissions or [],
             auth_headers=auth_headers or {}
         )
