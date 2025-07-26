@@ -29,12 +29,54 @@ class WorkflowService(BaseService):
         
         self.logger.info(f"Creating workflow: {name}")
         
+        # If no nodes/edges provided, create default start->end structure
+        if not nodes or not edges:
+            import uuid
+            
+            # Generate UUIDs for default nodes
+            start_node_id = str(uuid.uuid4())
+            end_node_id = str(uuid.uuid4())
+            
+            # Create default nodes
+            default_nodes = [
+                {
+                    "id": start_node_id,
+                    "label": "Start Here",
+                    "type": "start",
+                    "link": None,
+                    "position": {"x": 100, "y": 100},
+                    "config": {"message": "Start here"}
+                },
+                {
+                    "id": end_node_id,
+                    "label": "End Here",
+                    "type": "end",
+                    "link": None,
+                    "position": {"x": 300, "y": 100},
+                    "config": {"message": "End here"}
+                }
+            ]
+            
+            # Create default edges
+            default_edges = [
+                {
+                    "source": start_node_id,
+                    "target": end_node_id
+                }
+            ]
+            
+            # Use provided nodes/edges if available, otherwise use defaults
+            nodes = nodes if nodes else default_nodes
+            edges = edges if edges else default_edges
+            
+            self.logger.info(f"Creating workflow with default start->end structure for: {name}")
+        
         workflow = self.repository.create(
             name=name,
             description=description,
             agent_id=agent_id,
-            nodes=nodes or [],
-            edges=edges or [],
+            nodes=nodes,
+            edges=edges,
             status=status
         )
         

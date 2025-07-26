@@ -10,7 +10,8 @@ class WorkflowBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
     status: str = "inactive"
-    definition: Optional[Dict[str, Any]] = {}
+    nodes: Optional[List[Dict[str, Any]]] = []
+    edges: Optional[List[Dict[str, Any]]] = []
     agent_id: Optional[str] = None
 
 
@@ -22,7 +23,8 @@ class WorkflowUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     status: Optional[str] = None
-    definition: Optional[Dict[str, Any]] = None
+    nodes: Optional[List[Dict[str, Any]]] = None
+    edges: Optional[List[Dict[str, Any]]] = None
     agent_id: Optional[str] = None
 
 
