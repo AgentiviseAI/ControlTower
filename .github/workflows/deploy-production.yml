@@ -1,0 +1,82 @@
+name: Deploy ControlTower to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy'
+        required: true
+        default: 'latest'
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  REGISTRY_LOGIN_SERVER: agentiviseregistry-c4cme7esd7cvddhc.azurecr.io
+  IMAGE_NAME: control-tower
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Log in to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: Deploy to Azure App Service
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: agentcontroltower
+        slot-name: ${{ github.event.inputs.environment == 'production' && 'Production' || 'staging' }}
+        images: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}
+
+    - name: Health Check
+      run: |
+        echo "Waiting for deployment to be ready..."
+        sleep 30
+        
+        # Get the app URL based on environment
+        if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+          APP_URL="https://agentcontroltower.azurewebsites.net"
+        else
+          APP_URL="https://agentcontroltower-staging.azurewebsites.net"
+        fi
+        
+        # Health check
+        for i in {1..10}; do
+          if curl -f "$APP_URL/health" || curl -f "$APP_URL/api/v1/health"; then
+            echo "✅ Health check passed"
+            exit 0
+          fi
+          echo "🔄 Attempt $i failed, retrying in 10 seconds..."
+          sleep 10
+        done
+        
+        echo "❌ Health check failed after 10 attempts"
+        exit 1
+
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "🚀 Deployment to ${{ github.event.inputs.environment }} completed successfully!"
+          echo "📦 Image: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${{ github.event.inputs.image_tag }}"
+        else
+          echo "❌ Deployment to ${{ github.event.inputs.environment }} failed!"
+        fi
