@@ -30,9 +30,20 @@ jobs:
           source venv/bin/activate
       
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          source venv/bin/activate
+          pip install -r requirements.txt
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+      
+      - name: Prepare production environment
+        run: |
+          # Copy production environment template
+          cp .env.production .env
+          # Create logs directory
+          mkdir -p logs
+          # Ensure startup script is executable
+          chmod +x startup.py
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
@@ -45,9 +56,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+    environment:
+      name: 'Production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
       - name: Download artifact from build job
@@ -55,17 +66,12 @@ jobs:
         with:
           name: python-app
       
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_24B61158AFE14E8B816C9FA30E6FB6DB }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_26EF06CE47C8437CB90776943E703A2F }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B24907451E8947CD926661BB32BACA58 }}
-
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'agentcontroltower'
           slot-name: 'Production'
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AGENTCONTROLTOWER }}
+          package: .
           
