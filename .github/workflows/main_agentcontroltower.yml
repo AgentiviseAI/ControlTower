@@ -59,6 +59,9 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+    permissions:
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -66,12 +69,18 @@ jobs:
         with:
           name: python-app
       
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_24B61158AFE14E8B816C9FA30E6FB6DB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_26EF06CE47C8437CB90776943E703A2F }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_B24907451E8947CD926661BB32BACA58 }}
+      
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'agentcontroltower'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AGENTCONTROLTOWER }}
           package: .
           
