@@ -5,115 +5,18 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
-  workflow_dispatch:
-    inputs:
-      deploy_to_production:
-        description: 'Deploy to production after build'
-        required: false
-        default: false
-        type: boolean
-      image_tag:
-        description: 'Specific image tag to deploy (leave empty for latest)'
-        required: false
-        default: ''
 
 env:
   REGISTRY_LOGIN_SERVER: agentiviseregistry-c4cme7esd7cvddhc.azurecr.io
   IMAGE_NAME: control-tower
 
-jobs:
-  # Stage 1: Quality Gates (always runs)
-  quality-gates:
-    runs-on: ubuntu-latest
-    outputs:
-      should-build: ${{ steps.changes.outputs.should-build }}
-    
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-
-    - name: Check for relevant changes
-      id: changes
-      run: |
-        if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          echo "should-build=true" >> $GITHUB_OUTPUT
-        elif git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep -E "\.(py|txt|yml|yaml|dockerfile)$|Dockerfile" > /dev/null; then
-          echo "should-build=true" >> $GITHUB_OUTPUT
-        else
-          echo "should-build=false" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Set up Python 3.11
-      if: steps.changes.outputs.should-build == 'true'
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Cache pip dependencies
-      if: steps.changes.outputs.should-build == 'true'
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-
-    - name: Install dependencies
-      if: steps.changes.outputs.should-build == 'true'
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov flake8 black isort bandit safety
-
-    - name: Code formatting check
-      if: steps.changes.outputs.should-build == 'true'
-      run: |
-        black --check . || (echo "❌ Code formatting issues found. Run 'black .' to fix." && exit 1)
-        isort --check-only . || (echo "❌ Import sorting issues found. Run 'isort .' to fix." && exit 1)
-
-    - name: Lint with flake8
-      if: steps.changes.outputs.should-build == 'true'
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-    - name: Security scan with Bandit
-      if: steps.changes.outputs.should-build == 'true'
-      run: bandit -r . -x tests/ -f json -o bandit-report.json || true
-
-    - name: Dependency security check
-      if: steps.changes.outputs.should-build == 'true'
-      run: safety check --json --output safety-report.json || true
-
-    - name: Run tests
-      if: steps.changes.outputs.should-build == 'true'
-      run: |
-        if [ -d "tests" ]; then
-          pytest tests/ --cov=app --cov-report=xml --cov-report=html -v
-        else
-          echo "⚠️ No tests directory found, skipping tests"
-        fi
-
-    - name: Upload coverage
-      if: steps.changes.outputs.should-build == 'true'
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        fail_ci_if_error: false
-
-  # Stage 2: Build and Push (only on main branch or manual dispatch)
+jobs:  
   build-and-push:
-    needs: quality-gates
-    if: needs.quality-gates.outputs.should-build == 'true' && (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
-    outputs:
-      image-tag: ${{ steps.meta.outputs.tags }}
-      image-digest: ${{ steps.build.outputs.digest }}
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
 
     - name: Log in to Azure Container Registry
       uses: azure/docker-login@v1
@@ -122,104 +25,7 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
-
     - name: Build and push Docker image
-      id: build
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/amd64
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Run container security scan
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
-        format: 'table'
-      continue-on-error: true
-
-  # Stage 3: Deploy to Staging (automatic after successful build)
-  deploy-staging:
-    needs: [quality-gates, build-and-push]
-    if: needs.quality-gates.outputs.should-build == 'true' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: staging
-    
-    steps:
-    - name: Log in to Azure
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Deploy to staging
       run: |
-        echo "🚀 Deploying to staging environment..."
-        echo "📦 Image: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest"
-        # Add your staging deployment commands here
-        # Example: az container create or az webapp deployment...
-
-  # Stage 4: Deploy to Production (manual trigger only)
-  deploy-production:
-    needs: [quality-gates, build-and-push]
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_to_production == 'true'
-    runs-on: ubuntu-latest
-    environment: production
-    
-    steps:
-    - name: Log in to Azure
-      uses: azure/login@v2
-      with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-    - name: Deploy to production
-      run: |
-        IMAGE_TAG="${{ github.event.inputs.image_tag || 'latest' }}"
-        echo "🚀 Deploying to production..."
-        echo "📦 Image: ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}"
-        
-        # Deploy to Azure App Service
-        az webapp config container set \
-          --name agentcontroltower \
-          --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-          --docker-custom-image-name ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:${IMAGE_TAG}
-
-    - name: Health check
-      run: |
-        echo "⏳ Waiting for deployment to be ready..."
-        sleep 30
-        
-        for i in {1..10}; do
-          if curl -f "https://agentcontroltower.azurewebsites.net/health" 2>/dev/null; then
-            echo "✅ Production health check passed!"
-            exit 0
-          fi
-          echo "🔄 Attempt $i failed, retrying in 10 seconds..."
-          sleep 10
-        done
-        
-        echo "❌ Production health check failed!"
-        exit 1
-
-    - name: Notify success
-      run: |
-        echo "🎉 Production deployment completed successfully!"
-        echo "🔗 Application URL: https://agentcontroltower.azurewebsites.net"
+        docker build . --tag ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+        docker push ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
