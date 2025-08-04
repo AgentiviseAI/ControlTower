@@ -188,11 +188,13 @@ class CORSMiddleware(BaseHTTPMiddleware):
         """Add CORS headers to response"""
         origin = request.headers.get("origin")
         
+        # For credentials to work, we need to set Access-Control-Allow-Origin to the specific origin
         if origin and (origin in self.allowed_origins or "*" in self.allowed_origins):
             response.headers["Access-Control-Allow-Origin"] = origin
-        elif "*" in self.allowed_origins:
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        elif "*" in self.allowed_origins and not origin:
+            # Only set wildcard if no origin header and wildcard is allowed
             response.headers["Access-Control-Allow-Origin"] = "*"
         
         response.headers["Access-Control-Allow-Methods"] = ", ".join(self.allowed_methods)
         response.headers["Access-Control-Allow-Headers"] = ", ".join(self.allowed_headers)
-        response.headers["Access-Control-Allow-Credentials"] = "true"
