@@ -46,7 +46,7 @@ class Settings(BaseSettings):
     
     # API settings
     api_v1_prefix: str = "/api/v1"
-    cors_origins: Union[str, List[str]] = Field(default="http://localhost:3000,http://localhost:5173", env="CORS_ORIGINS")
+    cors_origins: Union[str, List[str]] = Field(default="http://localhost:3000,http://localhost:5173,https://portal.agentiviseai.com", env="CORS_ORIGINS")
 
     @field_validator('cors_origins')
     @classmethod
