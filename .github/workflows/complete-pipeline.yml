@@ -51,4 +51,34 @@ jobs:
         az containerapp update \
           --name ${{ env.CONTAINER_APP_NAME }} \
           --resource-group ${{ env.RESOURCE_GROUP }} \
-          --image ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+          --image ${{ env.REGISTRY_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest \
+          --set-env-vars \
+            ENVIRONMENT=prod \
+            DEBUG=false \
+            HOST=0.0.0.0 \
+            PORT=8000 \
+            RELOAD=false \
+            DATABASE_TYPE="${{ secrets.DATABASE_TYPE }}" \
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" \
+            POSTGRES_HOST="${{ secrets.POSTGRES_HOST }}" \
+            POSTGRES_PORT="${{ secrets.POSTGRES_PORT }}" \
+            POSTGRES_USER="${{ secrets.POSTGRES_USER }}" \
+            POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}" \
+            POSTGRES_DB="${{ secrets.POSTGRES_DB }}" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            JWT_SECRET_KEY="${{ secrets.JWT_SECRET_KEY }}" \
+            JWT_ALGORITHM=HS256 \
+            JWT_EXPIRATION_HOURS=24 \
+            CORS_ORIGINS="${{ secrets.CORS_ORIGINS }}" \
+            CORS_CREDENTIALS=true \
+            CORS_METHODS="GET,POST,PUT,DELETE,OPTIONS" \
+            CORS_HEADERS="*" \
+            AUTH_SERVICE_URL="${{ secrets.AUTH_SERVICE_URL }}" \
+            OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            ANTHROPIC_API_KEY="${{ secrets.ANTHROPIC_API_KEY }}" \
+            AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" \
+            AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" \
+            LOG_LEVEL=INFO \
+            LOG_FORMAT=json \
+            ENABLE_METRICS=true \
+            METRICS_PORT=9090

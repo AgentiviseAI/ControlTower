@@ -1,14 +1,20 @@
 """
 Main application entry point with SOLID architecture
 """
+import os
 import uvicorn
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
+# Set default environment for direct Python execution
+if not os.getenv("ENVIRONMENT"):
+    os.environ["ENVIRONMENT"] = "dev"
+
 from app.core.config import settings
 from app.core.database import engine, create_tables
 from app.core.logging import setup_logging, get_logger
-from app.middleware import LoggingMiddleware, MetricsMiddleware, CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+from app.middleware import LoggingMiddleware, MetricsMiddleware
 from app.api.v1 import api_router
 # Import models to ensure they're registered with SQLAlchemy
 from app.models import AIAgent, MCPTool, LLM, RAGConnector, Workflow, SecurityRole, User, Metrics
@@ -42,9 +48,10 @@ def create_application() -> FastAPI:
     # Add CORS middleware using settings
     app.add_middleware(
         CORSMiddleware,
-        allowed_origins=settings.cors_origins,
-        allowed_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        allowed_headers=["*"],
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
     )
 
     # Add custom middleware
