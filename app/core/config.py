@@ -52,11 +52,6 @@ class Settings(BaseSettings):
     # Database settings
     database_type: str = Field(default="sqlite", env="DATABASE_TYPE")
     database_url: str = Field(default="sqlite:///./ai_platform.db", env="DATABASE_URL")
-    postgres_host: str = Field(default="localhost", env="POSTGRES_HOST")
-    postgres_port: int = Field(default=5432, env="POSTGRES_PORT")
-    postgres_user: str = Field(default="postgres", env="POSTGRES_USER")
-    postgres_password: str = Field(default="", env="POSTGRES_PASSWORD")
-    postgres_db: str = Field(default="ai_platform", env="POSTGRES_DB")
     
     # Security settings
     secret_key: str = Field(default="dev-secret-key-not-for-production", env="SECRET_KEY")
@@ -70,9 +65,6 @@ class Settings(BaseSettings):
     cors_credentials: bool = Field(default=True, env="CORS_CREDENTIALS")
     cors_methods: Union[str, List[str]] = Field(default="*", env="CORS_METHODS")
     cors_headers: Union[str, List[str]] = Field(default="*", env="CORS_HEADERS")
-    
-    # Auth Service Configuration
-    auth_service_url: str = Field(default="http://localhost:8000", env="AUTH_SERVICE_URL")
     
     # External services
     openai_api_key: str = Field(default="", env="OPENAI_API_KEY")
@@ -122,16 +114,8 @@ settings = Settings()
 
 def get_database_url() -> str:
     """Get the appropriate database URL based on configuration"""
-    # If DATABASE_URL is explicitly set and it's PostgreSQL, use it directly
-    if settings.database_url and settings.database_url.startswith("postgresql"):
-        return settings.database_url
-    elif settings.database_type.lower() == "postgresql":
-        return (
-            f"postgresql://{settings.postgres_user}:{settings.postgres_password}"
-            f"@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
-        )
-    else:
-        return settings.database_url
+    # Use the configured database URL directly
+    return settings.database_url
 
 
 def get_log_config() -> Dict[str, Any]:
