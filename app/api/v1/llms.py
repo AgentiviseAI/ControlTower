@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import LLM, LLMCreate, LLMUpdate, ListResponse
 from app.services import LLMService
-from app.api.dependencies import get_llm_service, verify_token
+from app.api.dependencies import get_llm_service
 from app.core.exceptions import NotFoundError, ConflictError
 
 router = APIRouter(prefix="/llms", tags=["LLMs"])
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/llms", tags=["LLMs"])
 
 @router.get("", response_model=ListResponse)
 async def list_llms(
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """List all LLMs"""
@@ -25,7 +25,7 @@ async def list_llms(
 @router.post("", response_model=LLM, status_code=status.HTTP_201_CREATED)
 async def create_llm(
     llm: LLMCreate,
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Create a new LLM configuration"""
@@ -40,7 +40,7 @@ async def create_llm(
 @router.get("/{llm_id}", response_model=LLM)
 async def get_llm(
     llm_id: str,
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Get a specific LLM"""
@@ -55,7 +55,7 @@ async def get_llm(
 async def update_llm(
     llm_id: str,
     llm: LLMUpdate,
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Update LLM configuration"""
@@ -72,7 +72,7 @@ async def update_llm(
 @router.delete("/{llm_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_llm(
     llm_id: str,
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Delete an LLM configuration"""
@@ -85,7 +85,7 @@ async def delete_llm(
 @router.post("/{llm_id}/test", response_model=dict)
 async def test_llm_connection(
     llm_id: str,
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Test LLM connection and availability"""
@@ -101,7 +101,7 @@ async def test_llm_connection(
 @router.get("/{llm_id}/usage", response_model=dict)
 async def get_llm_usage_stats(
     llm_id: str,
-    token: str = Depends(verify_token),
+
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Get LLM usage statistics"""

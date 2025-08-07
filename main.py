@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.middleware import LoggingMiddleware, MetricsMiddleware
 from app.api.v1 import api_router
 # Import models to ensure they're registered with SQLAlchemy
-from app.models import AIAgent, MCPTool, LLM, RAGConnector, Workflow, SecurityRole, User, Metrics
+from app.models import AIAgent, MCPTool, LLM, RAGConnector, Workflow, SecurityRole, Metrics
 
 # Setup logging
 setup_logging()

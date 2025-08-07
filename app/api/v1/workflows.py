@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import Workflow, WorkflowCreate, WorkflowUpdate, ListResponse
 from app.services import WorkflowService
-from app.api.dependencies import get_workflow_service, verify_token
+from app.api.dependencies import get_workflow_service
 from app.core.exceptions import NotFoundError, ConflictError
 
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 @router.get("", response_model=ListResponse)
 async def list_workflows(
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """List all workflows"""
@@ -25,7 +25,7 @@ async def list_workflows(
 @router.post("", response_model=Workflow, status_code=status.HTTP_201_CREATED)
 async def create_workflow(
     workflow: WorkflowCreate,
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Create a new workflow"""
@@ -48,7 +48,7 @@ async def create_workflow(
 
 @router.get("/node-options", response_model=dict)
 async def get_workflow_node_options(
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Get available options for workflow nodes (LLMs, RAG connectors, MCP tools)"""
@@ -62,7 +62,7 @@ async def get_workflow_node_options(
 @router.get("/{workflow_id}", response_model=Workflow)
 async def get_workflow(
     workflow_id: str,
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Get a specific workflow"""
@@ -77,7 +77,7 @@ async def get_workflow(
 async def update_workflow(
     workflow_id: str,
     workflow: WorkflowUpdate,
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Update a workflow"""
@@ -94,7 +94,7 @@ async def update_workflow(
 @router.delete("/{workflow_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workflow(
     workflow_id: str,
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Delete a workflow"""

@@ -2,37 +2,19 @@
 API Dependencies and utilities
 """
 from typing import Generator
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db, SessionLocal
-from app.core.exceptions import UnauthorizedError
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
     RAGConnectorRepository, WorkflowRepository, SecurityRoleRepository,
-    UserRepository, MetricsRepository
+    MetricsRepository
 )
 from app.services import (
     AIAgentService, MCPToolService, LLMService,
-    RAGConnectorService, WorkflowService, SecurityService, AuthService
+    RAGConnectorService, WorkflowService, SecurityService
 )
-
-# Security
-security = HTTPBearer()
-
-
-def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
-    """Verify JWT token (simplified for demo)"""
-    # In a real application, you would validate the JWT token here
-    # For now, we'll just check if a token is provided
-    if not credentials or not credentials.credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return credentials.credentials
 
 
 # Repository Dependencies
@@ -58,10 +40,6 @@ def get_workflow_repository(db: Session = Depends(get_db)) -> WorkflowRepository
 
 def get_security_role_repository(db: Session = Depends(get_db)) -> SecurityRoleRepository:
     return SecurityRoleRepository(db)
-
-
-def get_user_repository(db: Session = Depends(get_db)) -> UserRepository:
-    return UserRepository(db)
 
 
 def get_metrics_repository(db: Session = Depends(get_db)) -> MetricsRepository:
@@ -103,13 +81,6 @@ def get_rag_connector_service(
 
 
 def get_security_service(
-    role_repository: SecurityRoleRepository = Depends(get_security_role_repository),
-    user_repository: UserRepository = Depends(get_user_repository)
+    role_repository: SecurityRoleRepository = Depends(get_security_role_repository)
 ) -> SecurityService:
-    return SecurityService(role_repository, user_repository)
-
-
-def get_auth_service(
-    user_repository: UserRepository = Depends(get_user_repository)
-) -> AuthService:
-    return AuthService(user_repository)
+    return SecurityService(role_repository)

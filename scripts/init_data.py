@@ -5,7 +5,7 @@ from app.core.database import get_db, create_tables
 from app.services import AIAgentService, MCPToolService, LLMService, RAGConnectorService, SecurityService, WorkflowService
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository, 
-    RAGConnectorRepository, SecurityRoleRepository, UserRepository, WorkflowRepository
+    RAGConnectorRepository, SecurityRoleRepository, WorkflowRepository
 )
 from datetime import datetime
 
@@ -26,7 +26,6 @@ def initialize_sample_data():
         llm_repo = LLMRepository(db)
         rag_repo = RAGConnectorRepository(db)
         role_repo = SecurityRoleRepository(db)
-        user_repo = UserRepository(db)
         workflow_repo = WorkflowRepository(db)
         
         # Initialize services
@@ -35,7 +34,7 @@ def initialize_sample_data():
         llm_service = LLMService(llm_repo)
         tool_service = MCPToolService(tool_repo)
         rag_service = RAGConnectorService(rag_repo)
-        security_service = SecurityService(role_repo, user_repo)
+        security_service = SecurityService(role_repo)
         
         # Check if data already exists
         if agent_repo.get_all():
@@ -310,26 +309,7 @@ def initialize_sample_data():
                 "security": []
             }
         )
-        
-        # Create sample users
-        user_repo.create(
-            username="admin",
-            password="password",  # In real app, hash this
-            name="John Admin",
-            email="john@company.com",
-            role="Admin",
-            status="active"
-        )
-        
-        user_repo.create(
-            username="user",
-            password="password",  # In real app, hash this
-            name="Jane User",
-            email="jane@company.com",
-            role="User",
-            status="active"
-        )
-        
+                
         print("Sample data initialized successfully!")
         
     except Exception as e:

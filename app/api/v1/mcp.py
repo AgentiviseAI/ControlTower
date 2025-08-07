@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import MCPTool, MCPToolCreate, MCPToolUpdate, ListResponse
 from app.services import MCPToolService
-from app.api.dependencies import get_mcp_tool_service, verify_token
+from app.api.dependencies import get_mcp_tool_service
 from app.core.exceptions import NotFoundError, ConflictError
 
 router = APIRouter(prefix="/mcp-tools", tags=["MCP Tools"])
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/mcp-tools", tags=["MCP Tools"])
 
 @router.get("", response_model=ListResponse)
 async def list_mcp_tools(
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """List all MCP tools"""
@@ -25,7 +25,7 @@ async def list_mcp_tools(
 @router.post("", response_model=MCPTool, status_code=status.HTTP_201_CREATED)
 async def create_mcp_tool(
     tool: MCPToolCreate,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Register a new MCP tool"""
@@ -40,7 +40,7 @@ async def create_mcp_tool(
 @router.get("/{tool_id}", response_model=MCPTool)
 async def get_mcp_tool(
     tool_id: str,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Get a specific MCP tool"""
@@ -55,7 +55,7 @@ async def get_mcp_tool(
 async def update_mcp_tool(
     tool_id: str,
     tool: MCPToolUpdate,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Update MCP tool configuration"""
@@ -72,7 +72,7 @@ async def update_mcp_tool(
 @router.delete("/{tool_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_mcp_tool(
     tool_id: str,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Unregister an MCP tool"""
@@ -85,7 +85,7 @@ async def delete_mcp_tool(
 @router.post("/{tool_id}/test", response_model=dict)
 async def test_mcp_tool(
     tool_id: str,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Test MCP tool connectivity and functionality"""
@@ -102,7 +102,7 @@ async def test_mcp_tool(
 async def execute_mcp_tool(
     tool_id: str,
     parameters: dict,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Execute an MCP tool with given parameters"""
@@ -118,7 +118,7 @@ async def execute_mcp_tool(
 @router.get("/{tool_id}/schema", response_model=dict)
 async def get_mcp_tool_schema(
     tool_id: str,
-    token: str = Depends(verify_token),
+
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Get the input/output schema for an MCP tool"""

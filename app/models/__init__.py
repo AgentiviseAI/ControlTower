@@ -8,7 +8,6 @@ from .llm import LLM
 from .rag_connector import RAGConnector
 from .workflow import Workflow
 from .security_role import SecurityRole
-from .user import User
 from .metrics import Metrics
 
 __all__ = [
@@ -19,6 +18,5 @@ __all__ = [
     "RAGConnector",
     "Workflow",
     "SecurityRole",
-    "User",
     "Metrics"
 ]

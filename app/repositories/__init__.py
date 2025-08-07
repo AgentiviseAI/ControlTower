@@ -8,7 +8,6 @@ from .llm_repository import LLMRepository
 from .rag_connector_repository import RAGConnectorRepository
 from .workflow_repository import WorkflowRepository
 from .security_role_repository import SecurityRoleRepository
-from .user_repository import UserRepository
 from .metrics_repository import MetricsRepository
 
 __all__ = [
@@ -20,6 +19,5 @@ __all__ = [
     "RAGConnectorRepository",
     "WorkflowRepository",
     "SecurityRoleRepository",
-    "UserRepository",
     "MetricsRepository",
 ]

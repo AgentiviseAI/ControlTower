@@ -24,9 +24,6 @@ from .workflow import (
 from .security_role import (
     SecurityRoleBase, SecurityRoleCreate, SecurityRoleUpdate, SecurityRole
 )
-from .user import (
-    UserBase, UserCreate, UserUpdate, User, UserWithRoles, UserLogin, Token
-)
 from .metrics import (
     MetricsBase, MetricsCreate, MetricsUpdate, Metrics
 )
@@ -71,15 +68,6 @@ __all__ = [
     "SecurityRoleCreate",
     "SecurityRoleUpdate",
     "SecurityRole",
-    
-    # User
-    "UserBase",
-    "UserCreate",
-    "UserUpdate",
-    "User",
-    "UserWithRoles",
-    "UserLogin",
-    "Token",
     
     # Metrics
     "MetricsBase",

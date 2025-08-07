@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import AIAgent, AIAgentCreate, AIAgentUpdate, Workflow, ListResponse
 from app.services import AIAgentService, WorkflowService
-from app.api.dependencies import get_ai_agent_service, get_workflow_service, verify_token
+from app.api.dependencies import get_ai_agent_service, get_workflow_service
 from app.core.exceptions import NotFoundError, ConflictError
 
 router = APIRouter(prefix="/agents", tags=["AI Agents"])
@@ -14,7 +14,6 @@ router = APIRouter(prefix="/agents", tags=["AI Agents"])
 
 @router.get("", response_model=ListResponse)
 async def list_agents(
-    token: str = Depends(verify_token),
     agent_service: AIAgentService = Depends(get_ai_agent_service)
 ):
     """List all AI agents"""
@@ -25,7 +24,6 @@ async def list_agents(
 @router.post("", response_model=AIAgent, status_code=status.HTTP_201_CREATED)
 async def create_agent(
     agent: AIAgentCreate,
-    token: str = Depends(verify_token),
     agent_service: AIAgentService = Depends(get_ai_agent_service)
 ):
     """Create a new AI agent"""
@@ -44,7 +42,7 @@ async def create_agent(
 @router.get("/{agent_id}", response_model=AIAgent)
 async def get_agent(
     agent_id: str,
-    token: str = Depends(verify_token),
+
     agent_service: AIAgentService = Depends(get_ai_agent_service)
 ):
     """Get a specific AI agent"""
@@ -59,7 +57,7 @@ async def get_agent(
 async def update_agent(
     agent_id: str,
     agent: AIAgentUpdate,
-    token: str = Depends(verify_token),
+
     agent_service: AIAgentService = Depends(get_ai_agent_service)
 ):
     """Update an AI agent"""
@@ -76,7 +74,7 @@ async def update_agent(
 @router.delete("/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_agent(
     agent_id: str,
-    token: str = Depends(verify_token),
+
     agent_service: AIAgentService = Depends(get_ai_agent_service)
 ):
     """Delete an AI agent"""
@@ -88,7 +86,7 @@ async def delete_agent(
 
 @router.get("/enabled", response_model=ListResponse)
 async def list_enabled_agents(
-    token: str = Depends(verify_token),
+
     agent_service: AIAgentService = Depends(get_ai_agent_service)
 ):
     """List all enabled AI agents"""
@@ -100,7 +98,7 @@ async def list_enabled_agents(
 @router.get("/{agent_id}/workflows", response_model=ListResponse)
 async def list_agent_workflows(
     agent_id: str,
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """List all workflows for a specific agent"""
@@ -115,7 +113,7 @@ async def list_agent_workflows(
 async def create_agent_workflow(
     agent_id: str,
     workflow_data: dict,
-    token: str = Depends(verify_token),
+
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Create a new workflow for a specific agent"""
@@ -136,7 +134,7 @@ async def create_agent_workflow(
 @router.post("/{agent_id}/workflows/simple", response_model=Workflow, status_code=status.HTTP_201_CREATED)
 async def create_simple_workflow(
     agent_id: str,
-    token: str = Depends(verify_token),
+
     agent_service: AIAgentService = Depends(get_ai_agent_service),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
