@@ -16,6 +16,23 @@ logger = logging.getLogger(__name__)
 
 # Create the SQLAlchemy engine
 database_url = get_database_url()
+
+# Handle PostgreSQL URL format conversion for Azure Cosmos DB compatibility
+if not database_url.startswith("sqlite"):
+    # Handle different PostgreSQL URL formats
+    if database_url.startswith('postgres://'):
+        if 'cosmos.azure.com' in database_url:
+            # Azure Cosmos DB for PostgreSQL - use psycopg2 explicitly
+            database_url = database_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+            logger.info("Detected Azure Cosmos DB for PostgreSQL - using psycopg2 driver")
+        else:
+            # Regular PostgreSQL - convert to postgresql://
+            database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    
+    # Validate PostgreSQL URL format
+    if not database_url.startswith(('postgresql://', 'postgresql+psycopg2://')):
+        raise ValueError(f"Invalid PostgreSQL URL format: {database_url[:30]}...")
+
 if database_url.startswith("sqlite"):
     engine = create_engine(
         database_url,
@@ -24,13 +41,27 @@ if database_url.startswith("sqlite"):
         echo=settings.debug,
     )
 else:
-    # PostgreSQL or other databases
+    # PostgreSQL configuration with Azure Cosmos DB optimizations
     engine = create_engine(
         database_url,
         pool_pre_ping=True,
         pool_recycle=300,
         echo=settings.debug,
+        # Azure Cosmos DB specific settings
+        connect_args={
+            "sslmode": "require",
+            "connect_timeout": 30,
+        } if 'cosmos.azure.com' in database_url else {}
     )
+    
+    # Test database connection for PostgreSQL
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("Database connection verified")
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        raise
 
 # Create SessionLocal class
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
