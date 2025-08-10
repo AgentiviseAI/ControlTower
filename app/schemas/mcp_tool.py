@@ -1,5 +1,5 @@
 """
-MCP Tool schemas
+MCP Tool schemas with organization support
 """
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict
@@ -17,6 +17,7 @@ class MCPToolBase(BaseModel):
 
 
 class MCPToolCreate(MCPToolBase):
+    """Create MCP Tool schema - organization_id is injected via dependency"""
     pass
 
 
@@ -28,10 +29,12 @@ class MCPToolUpdate(BaseModel):
     transport: Optional[str] = None
     required_permissions: Optional[List[str]] = None
     auth_headers: Optional[Dict[str, str]] = None
+    # organization_id cannot be changed after creation
 
 
 class MCPTool(MCPToolBase):
     id: str
+    organization_id: str
     created_at: datetime
     updated_at: datetime
 

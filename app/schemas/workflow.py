@@ -1,5 +1,5 @@
 """
-Workflow schemas
+Workflow schemas with organization support
 """
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
@@ -16,6 +16,7 @@ class WorkflowBase(BaseModel):
 
 
 class WorkflowCreate(WorkflowBase):
+    """Create Workflow schema - organization_id is injected via dependency"""
     pass
 
 
@@ -26,10 +27,12 @@ class WorkflowUpdate(BaseModel):
     nodes: Optional[List[Dict[str, Any]]] = None
     edges: Optional[List[Dict[str, Any]]] = None
     agent_id: Optional[str] = None
+    # organization_id cannot be changed after creation
 
 
 class Workflow(WorkflowBase):
     id: str
+    organization_id: str
     created_at: datetime
     updated_at: datetime
 

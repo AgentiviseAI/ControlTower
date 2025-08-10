@@ -4,15 +4,15 @@ Security Service implementation
 from typing import List, Optional, Dict, Any
 from app.repositories import SecurityRoleRepository
 from app.core.exceptions import NotFoundError, ConflictError
-from app.core.logging import get_logger
+from .base import BaseService
 
 
-class SecurityService:
+class SecurityService(BaseService):
     """Service for Security and RBAC operations"""
     
     def __init__(self, role_repository: SecurityRoleRepository):
+        super().__init__(role_repository)
         self.role_repo = role_repository
-        self.logger = get_logger(self.__class__.__name__)
 
     def create_role(self, role_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new security role"""
@@ -27,28 +27,10 @@ class SecurityService:
         
         role = self.role_repo.create(**role_data)
         return self._to_dict(role)
-   
-    def _validate_data(self, data: Dict[str, Any], required_fields: List[str]):
-        """Validate required fields in data"""
-        missing_fields = [field for field in required_fields if field not in data or data[field] is None]
-        if missing_fields:
-            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
-    
-    def _to_dict(self, model_instance, exclude_fields: List[str] = None) -> Dict[str, Any]:
-        """Convert model instance to dictionary"""
-        if not model_instance:
-            return None
+
+    def list_roles(self) -> List[Dict[str, Any]]:
+        """List all active security roles"""
+        self.logger.info("Fetching all active security roles")
         
-        exclude_fields = exclude_fields or []
-        result = {}
-        
-        for column in model_instance.__table__.columns:
-            field_name = column.name
-            if field_name not in exclude_fields:
-                value = getattr(model_instance, field_name)
-                # Handle datetime serialization
-                if hasattr(value, 'isoformat'):
-                    value = value.isoformat()
-                result[field_name] = value
-        
-        return result
+        roles = self.role_repo.get_active_roles()
+        return [self._to_dict(role) for role in roles]

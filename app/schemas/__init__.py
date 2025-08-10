@@ -1,9 +1,16 @@
 """
-Schemas module
+Schemas module with organization support
 """
 
 # Base schemas
 from .base import BaseResponse, ListResponse
+
+# Organization schemas
+from .organization import (
+    OrganizationBase, OrganizationCreate, OrganizationUpdate, OrganizationResponse,
+    OrganizationUserBase, OrganizationUserResponse, UserOrganizationResponse,
+    AddUserToOrganizationRequest, UpdateUserRoleRequest
+)
 
 # Model schemas  
 from .ai_agent import (
@@ -32,6 +39,19 @@ __all__ = [
     # Base
     "BaseResponse",
     "ListResponse",
+    
+    # Organization
+    "User",
+    "Organization",
+    "OrganizationUser",
+    "OrganizationCreate",
+    "OrganizationUpdate", 
+    "UserCreate",
+    "AddMemberRequest",
+    "UpdateMemberRoleRequest",
+    "OrganizationMemberResponse",
+    "OrganizationRoleEnum",
+    "OrganizationStatusEnum",
     
     # AI Agent
     "AIAgentBase",

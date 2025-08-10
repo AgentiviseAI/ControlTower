@@ -198,3 +198,10 @@ class CORSMiddleware(BaseHTTPMiddleware):
         
         response.headers["Access-Control-Allow-Methods"] = ", ".join(self.allowed_methods)
         response.headers["Access-Control-Allow-Headers"] = ", ".join(self.allowed_headers)
+
+
+# Export middleware
+__all__ = [
+    "LoggingMiddleware",
+    "MetricsMiddleware", 
+]

@@ -7,12 +7,14 @@ This is the backend API and control plane for the Agent Platform.
 - SQLite database
 - Docker support
 - Azure App Service deployment
+- Remote debugging support
 
 ## Development
 
 ### Prerequisites
 - Python 3.11 or higher
 - pip
+- Docker (for containerized debugging)
 
 ### Installation
 ```bash
@@ -23,6 +25,38 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+
+### Debug Mode
+
+For troubleshooting and development, you can run ControlTower in debug mode with remote debugging support:
+
+#### Quick Start (PowerShell)
+```powershell
+./setup-debug.ps1
+```
+
+#### Manual Setup
+```bash
+# Build and start debug container
+docker-compose -f docker-compose.debug.yml up --build
+
+# The service will be available at:
+# - API: http://localhost:8001
+# - Debug port: localhost:5679
+```
+
+#### IDE Debug Configuration
+Configure your IDE to connect to remote debugger:
+- **Host**: localhost
+- **Port**: 5679
+- **Path mappings**: Map your local code to `/app` in container
+
+#### Testing Debug Setup
+```bash
+python debug_test.py
+```
+
+This script will test API endpoints and trigger authorization methods like `checkPermissions` where you can set breakpoints.
 
 ## Deployment
 

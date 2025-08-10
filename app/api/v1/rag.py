@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import RAGConnector, RAGConnectorCreate, RAGConnectorUpdate, ListResponse
 from app.services import RAGConnectorService
-from app.api.dependencies import get_rag_connector_service
+from app.api.dependencies import get_rag_connector_service, get_current_user_id, get_current_organization_id
 from app.core.exceptions import NotFoundError, ConflictError
 
 router = APIRouter(prefix="/rag", tags=["RAG Connectors"])
@@ -14,24 +14,28 @@ router = APIRouter(prefix="/rag", tags=["RAG Connectors"])
 
 @router.get("/connectors", response_model=ListResponse)
 async def list_rag_connectors(
-
+    user_id: str = Depends(get_current_user_id),
+    organization_id: str = Depends(get_current_organization_id),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
-    """List all RAG connectors"""
-    connectors = rag_service.get_all_connectors()
+    """List all RAG connectors for the current organization"""
+    connectors = rag_service.list_connectors(organization_id)
     return ListResponse(items=connectors, total=len(connectors))
 
 
 @router.post("/connectors", response_model=RAGConnector, status_code=status.HTTP_201_CREATED)
 async def create_rag_connector(
     connector: RAGConnectorCreate,
-
+    user_id: str = Depends(get_current_user_id),
+    organization_id: str = Depends(get_current_organization_id),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Create a new RAG connector"""
     try:
-        connector_data = connector.dict()
-        created_connector = rag_service.create_connector(**connector_data)
+        created_connector = rag_service.create_connector(
+            organization_id=organization_id,
+            **connector.dict()
+        )
         return created_connector
     except ConflictError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))

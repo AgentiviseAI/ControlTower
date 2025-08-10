@@ -59,7 +59,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_expiration_hours: int = Field(default=24, env="JWT_EXPIRATION_HOURS")
     access_token_expire_minutes: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
-    
+    resource_app_id: str = Field(default="", env="RESOURCE_APP_ID")  # Application ID of the resource server (for audience validation)
+        
     # CORS settings
     cors_origins: Union[str, List[str]] = Field(default="http://localhost:3000,http://localhost:5173", env="CORS_ORIGINS")
     cors_credentials: bool = Field(default=True, env="CORS_CREDENTIALS")
@@ -71,11 +72,13 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="", env="ANTHROPIC_API_KEY")
     azure_openai_endpoint: str = Field(default="", env="AZURE_OPENAI_ENDPOINT")
     azure_openai_api_key: str = Field(default="", env="AZURE_OPENAI_API_KEY")
+    auth_service_url: str = Field(default="http://localhost:8001", env="AUTH_SERVICE_URL")
     
     # Logging settings
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
     log_file: str = Field(default="./logs/app.log", env="LOG_FILE")
     log_format: str = Field(default="detailed", env="LOG_FORMAT")
+    sqlalchemy_log_level: str = Field(default="WARNING", env="SQLALCHEMY_LOG_LEVEL")
     
     # Monitoring settings
     enable_metrics: bool = Field(default=True, env="ENABLE_METRICS", alias="metrics_enabled")
@@ -172,6 +175,33 @@ def get_log_config() -> Dict[str, Any]:
             },
             "uvicorn.access": {
                 "level": "INFO",
+                "handlers": ["console", "file"],
+                "propagate": False,
+            },
+            # SQLAlchemy loggers - reduce verbosity
+            "sqlalchemy.engine": {
+                "level": settings.sqlalchemy_log_level,
+                "handlers": ["console", "file"],
+                "propagate": False,
+            },
+            "sqlalchemy.pool": {
+                "level": settings.sqlalchemy_log_level,
+                "handlers": ["console", "file"],
+                "propagate": False,
+            },
+            "sqlalchemy.dialects": {
+                "level": settings.sqlalchemy_log_level,
+                "handlers": ["console", "file"],
+                "propagate": False,
+            },
+            "sqlalchemy.orm": {
+                "level": settings.sqlalchemy_log_level,
+                "handlers": ["console", "file"],
+                "propagate": False,
+            },
+            # Catch-all SQLAlchemy logger
+            "sqlalchemy": {
+                "level": settings.sqlalchemy_log_level,
                 "handlers": ["console", "file"],
                 "propagate": False,
             },

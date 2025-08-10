@@ -3,6 +3,7 @@ Service interfaces and base implementations following SOLID principles
 """
 from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Any
+from uuid import UUID
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -48,6 +49,9 @@ class BaseService:
                 # Handle datetime serialization
                 if hasattr(value, 'isoformat'):
                     value = value.isoformat()
+                # Handle UUID serialization - convert UUID objects to strings
+                elif isinstance(value, UUID):
+                    value = str(value)
                 result[field_name] = value
         
         return result

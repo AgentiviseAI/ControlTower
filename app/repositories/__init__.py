@@ -9,6 +9,7 @@ from .rag_connector_repository import RAGConnectorRepository
 from .workflow_repository import WorkflowRepository
 from .security_role_repository import SecurityRoleRepository
 from .metrics_repository import MetricsRepository
+from .organization_repository import OrganizationRepository
 
 __all__ = [
     "IRepository",
@@ -20,4 +21,5 @@ __all__ = [
     "WorkflowRepository",
     "SecurityRoleRepository",
     "MetricsRepository",
+    "OrganizationRepository",
 ]

@@ -3,7 +3,7 @@ Workflow Service implementation
 """
 from typing import List, Optional, Dict, Any
 from app.repositories import WorkflowRepository, LLMRepository, MCPToolRepository, RAGConnectorRepository
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import NotFoundError, ConflictError
 from .base import BaseService
 
 
@@ -19,7 +19,7 @@ class WorkflowService(BaseService):
         self.mcp_repository = mcp_repository
         self.rag_repository = rag_repository
     
-    def create_workflow(self, name: str, description: str = None, 
+    def create_workflow(self, organization_id: str, name: str, description: str = None, 
                        agent_id: str = None,
                        nodes: List[Dict[str, Any]] = None, 
                        edges: List[Dict[str, Any]] = None,
@@ -27,7 +27,12 @@ class WorkflowService(BaseService):
         """Create a new workflow"""
         self._validate_data({'name': name}, ['name'])
         
-        self.logger.info(f"Creating workflow: {name}")
+        # Check if workflow with same name exists in this organization
+        existing_workflow = self.repository.get_by_name_and_organization(name, organization_id)
+        if existing_workflow:
+            raise ConflictError(f"Workflow with name '{name}' already exists in this organization")
+        
+        self.logger.info(f"Creating workflow: {name} for organization: {organization_id}")
         
         # If no nodes/edges provided, create default start->end structure
         if not nodes or not edges:
@@ -77,7 +82,8 @@ class WorkflowService(BaseService):
             agent_id=agent_id,
             nodes=nodes,
             edges=edges,
-            status=status
+            status=status,
+            organization_id=organization_id  # ✅ Always include organization_id
         )
         
         return self._workflow_to_dict(workflow)
@@ -92,6 +98,11 @@ class WorkflowService(BaseService):
     def get_all_workflows(self) -> List[Dict[str, Any]]:
         """Get all workflows"""
         workflows = self.repository.get_all()
+        return [self._workflow_to_dict(workflow) for workflow in workflows]
+    
+    def list_workflows(self, organization_id: str) -> List[Dict[str, Any]]:
+        """Get all workflows for a specific organization"""
+        workflows = self.repository.get_by_organization(organization_id)
         return [self._workflow_to_dict(workflow) for workflow in workflows]
     
     def get_workflows_by_agent(self, agent_id: str) -> List[Dict[str, Any]]:

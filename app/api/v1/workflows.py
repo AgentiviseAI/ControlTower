@@ -6,26 +6,31 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import Workflow, WorkflowCreate, WorkflowUpdate, ListResponse
 from app.services import WorkflowService
-from app.api.dependencies import get_workflow_service
+from app.api.dependencies import get_workflow_service, get_current_user_id, get_current_organization_id
 from app.core.exceptions import NotFoundError, ConflictError
+from app.middleware.authorization import (
+    RequireWorkflowCreate, RequireWorkflowRead, RequireWorkflowUpdate, RequireWorkflowDelete
+)
 
 router = APIRouter(prefix="/workflows", tags=["Workflows"])
 
 
 @router.get("", response_model=ListResponse)
 async def list_workflows(
-
+    auth: tuple = Depends(RequireWorkflowRead),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
-    """List all workflows"""
-    workflows = workflow_service.get_all_workflows()
+    """List all workflows for the current organization"""
+    user_id, organization_id = auth
+    workflows = workflow_service.list_workflows(organization_id)
     return ListResponse(items=workflows, total=len(workflows))
 
 
 @router.post("", response_model=Workflow, status_code=status.HTTP_201_CREATED)
 async def create_workflow(
     workflow: WorkflowCreate,
-
+    user_id: str = Depends(get_current_user_id),
+    organization_id: str = Depends(get_current_organization_id),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Create a new workflow"""
@@ -34,6 +39,7 @@ async def create_workflow(
         workflow_dict = workflow.dict()
         
         new_workflow = workflow_service.create_workflow(
+            organization_id=organization_id,
             name=workflow_dict['name'],
             description=workflow_dict.get('description'),
             agent_id=workflow_dict.get('agent_id'),
@@ -48,6 +54,7 @@ async def create_workflow(
 
 @router.get("/node-options", response_model=dict)
 async def get_workflow_node_options(
+    auth: tuple = Depends(RequireWorkflowRead),
 
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):

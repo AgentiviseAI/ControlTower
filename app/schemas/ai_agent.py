@@ -1,5 +1,5 @@
 """
-AI Agent schemas
+AI Agent schemas with organization support
 """
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -15,7 +15,7 @@ class AIAgentBase(BaseModel):
 
 
 class AIAgentCreate(AIAgentBase):
-    pass
+    pass  # organization_id will be injected from headers/context
 
 
 class AIAgentUpdate(BaseModel):
@@ -24,10 +24,12 @@ class AIAgentUpdate(BaseModel):
     enabled: Optional[bool] = None
     preview_enabled: Optional[bool] = None
     workflow_id: Optional[str] = None
+    # organization_id cannot be changed after creation
 
 
 class AIAgent(AIAgentBase):
     id: str
+    organization_id: str
     created_at: datetime
     updated_at: datetime
 

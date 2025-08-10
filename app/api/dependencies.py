@@ -1,20 +1,77 @@
 """
 API Dependencies and utilities
 """
+import logging
 from typing import Generator
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status, Header, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.core.database import get_db, SessionLocal
+from app.core.auth_client import AuthServiceClient
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
     RAGConnectorRepository, WorkflowRepository, SecurityRoleRepository,
-    MetricsRepository
+    MetricsRepository, OrganizationRepository
 )
 from app.services import (
     AIAgentService, MCPToolService, LLMService,
-    RAGConnectorService, WorkflowService, SecurityService
+    RAGConnectorService, WorkflowService, SecurityService, OrganizationService
 )
+
+# Security
+security = HTTPBearer(auto_error=False)
+auth_client = AuthServiceClient()
+logger = logging.getLogger(__name__)
+
+async def get_current_user_id(
+    x_user_id: str = Header(None, alias="X-User-ID"),
+    x_service: str = Header(None, alias="X-Service"),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+) -> str:
+    """Validate JWT token or handle internal service calls and return user ID"""
+    # Handle internal service calls (from AuthService, etc.)
+    if x_user_id and x_service:
+        logger.info(f"Internal service call from {x_service} for user {x_user_id}")
+        return x_user_id
+    
+    # Handle regular JWT token validation
+    if not credentials:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    try:
+        user_data = await auth_client.validate_token(credentials.credentials)
+        # Use 'id' field for user ID, fallback to 'sub' for JWT standard compatibility
+        return user_data.get("id") or user_data.get("sub")
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+async def get_current_organization_id(
+    request: Request,
+    current_user_id: str = Depends(get_current_user_id)
+) -> str:
+    """Extract organization_id from x-organization-id header"""
+    
+    organization_id = request.headers.get('x-organization-id')
+    
+    if not organization_id:
+        # Use default test organization for development/testing
+        organization_id = "dev-org-001"
+        logger.info(f"No x-organization-id header found, using default organization: {organization_id}")
+    else:
+        logger.info(f"Found organization_id in header: {organization_id}")
+    
+    return organization_id
 
 
 # Repository Dependencies
@@ -44,6 +101,10 @@ def get_security_role_repository(db: Session = Depends(get_db)) -> SecurityRoleR
 
 def get_metrics_repository(db: Session = Depends(get_db)) -> MetricsRepository:
     return MetricsRepository(db)
+
+
+def get_organization_repository(db: Session = Depends(get_db)) -> OrganizationRepository:
+    return OrganizationRepository(db)
 
 
 # Service Dependencies
@@ -84,3 +145,9 @@ def get_security_service(
     role_repository: SecurityRoleRepository = Depends(get_security_role_repository)
 ) -> SecurityService:
     return SecurityService(role_repository)
+
+
+def get_organization_service(
+    repository: OrganizationRepository = Depends(get_organization_repository)
+) -> OrganizationService:
+    return OrganizationService(repository)

@@ -2,7 +2,7 @@
 API v1 router configuration
 """
 from fastapi import APIRouter
-from . import agents, security, workflows, llms, mcp, rag
+from . import agents, security, workflows, llms, mcp, rag, organizations
 
 # Create the main v1 router
 api_router = APIRouter()
@@ -14,3 +14,4 @@ api_router.include_router(workflows.router)
 api_router.include_router(llms.router)
 api_router.include_router(mcp.router)
 api_router.include_router(rag.router)
+api_router.include_router(organizations.router)

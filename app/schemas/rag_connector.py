@@ -14,6 +14,7 @@ class RAGConnectorBase(BaseModel):
 
 
 class RAGConnectorCreate(RAGConnectorBase):
+    """Create RAG Connector schema - organization_id is injected via dependency"""
     pass
 
 
@@ -22,10 +23,12 @@ class RAGConnectorUpdate(BaseModel):
     type: Optional[str] = Field(None, min_length=1, max_length=100)
     enabled: Optional[bool] = None
     connection_details: Optional[Dict[str, Any]] = None
+    # organization_id cannot be changed after creation
 
 
 class RAGConnector(RAGConnectorBase):
     id: str
+    organization_id: str
     created_at: datetime
     updated_at: datetime
 

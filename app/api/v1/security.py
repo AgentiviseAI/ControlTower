@@ -13,63 +13,15 @@ router = APIRouter(prefix="/security", tags=["security"])
 
 
 @router.get("/roles", response_model=ListResponse)
-async def list_security_roles():
+async def list_security_roles(
+    security_service: SecurityService = Depends(get_security_service)
+):
     """List all security roles with full details"""
-    # Return default roles for now
-    default_roles = [
-        {
-            "id": "admin",
-            "name": "Administrator", 
-            "description": "Full system access with all permissions",
-            "permissions": {
-                "agents": ["read", "write", "delete"],
-                "llms": ["read", "write", "delete"],
-                "workflows": ["read", "write", "delete"],
-                "mcp_tools": ["read", "write", "delete"],
-                "rag": ["read", "write", "delete"],
-                "security": ["read", "write", "delete"],
-                "metrics": ["read"]
-            },
-            "status": "active",
-            "created_at": "2025-01-01T00:00:00Z",
-            "updated_at": "2025-01-01T00:00:00Z"
-        },
-        {
-            "id": "user",
-            "name": "Standard User",
-            "description": "Basic access to view and manage own resources",
-            "permissions": {
-                "agents": ["read", "write"],
-                "llms": ["read"],
-                "workflows": ["read", "write"], 
-                "mcp_tools": ["read"],
-                "rag": ["read"],
-                "security": ["read"],
-                "metrics": ["read"]
-            },
-            "status": "active",
-            "created_at": "2025-01-01T00:00:00Z",
-            "updated_at": "2025-01-01T00:00:00Z"
-        },
-        {
-            "id": "viewer",
-            "name": "Viewer",
-            "description": "Read-only access to system resources",
-            "permissions": {
-                "agents": ["read"],
-                "llms": ["read"],
-                "workflows": ["read"],
-                "mcp_tools": ["read"],
-                "rag": ["read"],
-                "security": ["read"],
-                "metrics": ["read"]
-            },
-            "status": "active",
-            "created_at": "2025-01-01T00:00:00Z",
-            "updated_at": "2025-01-01T00:00:00Z"
-        }
-    ]
-    return ListResponse(items=default_roles, total=len(default_roles))
+    try:
+        roles = security_service.list_roles()
+        return ListResponse(items=roles, total=len(roles))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 
 @router.post("/roles", response_model=SecurityRole, status_code=status.HTTP_201_CREATED)

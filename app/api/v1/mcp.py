@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import MCPTool, MCPToolCreate, MCPToolUpdate, ListResponse
 from app.services import MCPToolService
-from app.api.dependencies import get_mcp_tool_service
+from app.api.dependencies import get_mcp_tool_service, get_current_user_id, get_current_organization_id
 from app.core.exceptions import NotFoundError, ConflictError
 
 router = APIRouter(prefix="/mcp-tools", tags=["MCP Tools"])
@@ -14,24 +14,28 @@ router = APIRouter(prefix="/mcp-tools", tags=["MCP Tools"])
 
 @router.get("", response_model=ListResponse)
 async def list_mcp_tools(
-
+    user_id: str = Depends(get_current_user_id),
+    organization_id: str = Depends(get_current_organization_id),
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
-    """List all MCP tools"""
-    tools = mcp_service.get_all_tools()
+    """List all MCP tools for the current organization"""
+    tools = mcp_service.list_tools(organization_id)
     return ListResponse(items=tools, total=len(tools))
 
 
 @router.post("", response_model=MCPTool, status_code=status.HTTP_201_CREATED)
 async def create_mcp_tool(
     tool: MCPToolCreate,
-
+    user_id: str = Depends(get_current_user_id),
+    organization_id: str = Depends(get_current_organization_id),
     mcp_service: MCPToolService = Depends(get_mcp_tool_service)
 ):
     """Register a new MCP tool"""
     try:
-        tool_data = tool.dict()
-        created_tool = mcp_service.create_tool(**tool_data)
+        created_tool = mcp_service.create_tool(
+            organization_id=organization_id,
+            **tool.dict()
+        )
         return created_tool
     except ConflictError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))

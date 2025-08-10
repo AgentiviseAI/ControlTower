@@ -8,6 +8,7 @@ from .llm_service import LLMService
 from .rag_connector_service import RAGConnectorService
 from .workflow_service import WorkflowService
 from .security_service import SecurityService
+from .organization_service import OrganizationService
 
 __all__ = [
     "IService",

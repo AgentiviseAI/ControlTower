@@ -69,6 +69,7 @@ class LLMBase(BaseModel):
 
 
 class LLMCreate(LLMBase):
+    """Create LLM schema - organization_id is injected via dependency"""
     pass
 
 
@@ -121,6 +122,7 @@ class LLMUpdate(BaseModel):
     status: Optional[str] = None
     usage_stats: Optional[Dict[str, Any]] = None
     additional_config: Optional[Dict[str, Any]] = None
+    # organization_id cannot be changed after creation
     
     @validator('custom_api_compatibility')
     def validate_custom_api_compatibility(cls, v):
@@ -131,6 +133,7 @@ class LLMUpdate(BaseModel):
 
 class LLM(LLMBase):
     id: str
+    organization_id: str
     created_at: datetime
     updated_at: datetime
 

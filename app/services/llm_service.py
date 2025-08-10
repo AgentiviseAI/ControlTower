@@ -3,7 +3,7 @@ LLM Service implementation
 """
 from typing import List, Optional, Dict, Any
 from app.repositories import LLMRepository
-from app.core.exceptions import NotFoundError
+from app.core.exceptions import NotFoundError, ConflictError
 from .base import BaseService
 
 
@@ -13,7 +13,7 @@ class LLMService(BaseService):
     def __init__(self, repository: LLMRepository):
         super().__init__(repository)
     
-    def create_llm(self, name: str, model_name: str, hosting_environment: str, 
+    def create_llm(self, organization_id: str, name: str, model_name: str, hosting_environment: str, 
                   enabled: bool = True, status: str = "active",
                   description: str = None, usage_stats: Dict[str, Any] = None,
                   # Model parameters
@@ -44,11 +44,16 @@ class LLMService(BaseService):
                   custom_oauth2_client_secret: str = None,
                   **kwargs) -> Dict[str, Any]:
         """Create a new LLM with comprehensive deployment configuration"""
+        # Check if LLM with same name exists in this organization
+        existing = self.repository.get_by_name_and_organization(name, organization_id)
+        if existing:
+            raise ConflictError(f"LLM with name '{name}' already exists in this organization")
+        
         self._validate_data({
             'name': name, 'model_name': model_name, 'hosting_environment': hosting_environment
         }, ['name', 'model_name', 'hosting_environment'])
         
-        self.logger.info(f"Creating LLM: {name} with hosting environment: {hosting_environment}")
+        self.logger.info(f"Creating LLM: {name} for organization: {organization_id} with hosting environment: {hosting_environment}")
         
         # Prepare all the data for the repository
         llm_data = {
@@ -58,6 +63,7 @@ class LLMService(BaseService):
             'enabled': enabled,
             'status': status,
             'description': description,
+            'organization_id': organization_id,  # ✅ Always include organization_id
             'usage_stats': usage_stats or {},
             # Model parameters
             'temperature': temperature,
@@ -148,6 +154,11 @@ class LLMService(BaseService):
     def get_all_llms(self) -> List[Dict[str, Any]]:
         """Get all LLMs"""
         llms = self.repository.get_all()
+        return [self._to_dict(llm) for llm in llms]
+    
+    def list_llms(self, organization_id: str) -> List[Dict[str, Any]]:
+        """Get all LLMs for a specific organization"""
+        llms = self.repository.get_by_organization(organization_id)
         return [self._to_dict(llm) for llm in llms]
     
     def update_llm(self, llm_id: str, **kwargs) -> Optional[Dict[str, Any]]:
