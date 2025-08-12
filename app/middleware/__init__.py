@@ -203,5 +203,15 @@ class CORSMiddleware(BaseHTTPMiddleware):
 # Export middleware
 __all__ = [
     "LoggingMiddleware",
-    "MetricsMiddleware", 
+    "MetricsMiddleware",
 ]
+
+# Export transaction utilities
+from .transaction import TransactionManager, get_transaction_manager, atomic_operation, db_transaction
+
+__all__.extend([
+    "TransactionManager",
+    "get_transaction_manager", 
+    "atomic_operation",
+    "db_transaction"
+])

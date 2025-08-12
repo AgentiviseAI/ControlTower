@@ -7,7 +7,7 @@ on:
     branches: [ main, develop ]
 
 env:
-  REGISTRY_LOGIN_SERVER: agentiviseregistry-c4cme7esd7cvddhc.azurecr.io
+  REGISTRY_LOGIN_SERVER: agentiviseregistry.azurecr.io
   IMAGE_NAME: control-tower
   CONTAINER_APP_NAME: controltower
   RESOURCE_GROUP: agentivise-rg

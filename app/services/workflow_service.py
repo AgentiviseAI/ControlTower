@@ -2,6 +2,7 @@
 Workflow Service implementation
 """
 from typing import List, Optional, Dict, Any
+from uuid import UUID
 from app.repositories import WorkflowRepository, LLMRepository, MCPToolRepository, RAGConnectorRepository
 from app.core.exceptions import NotFoundError, ConflictError
 from .base import BaseService
@@ -19,12 +20,14 @@ class WorkflowService(BaseService):
         self.mcp_repository = mcp_repository
         self.rag_repository = rag_repository
     
-    def create_workflow(self, organization_id: str, name: str, description: str = None, 
+    def create_workflow(self, organization_id: UUID, name: str, description: str = None, 
                        agent_id: str = None,
                        nodes: List[Dict[str, Any]] = None, 
                        edges: List[Dict[str, Any]] = None,
-                       status: str = "draft") -> Dict[str, Any]:
-        """Create a new workflow"""
+                       status: str = "draft",
+                       is_default: bool = False,
+                       execution_order: int = 1) -> Dict[str, Any]:
+        """Create a new workflow (automatically detects transaction context)"""
         self._validate_data({'name': name}, ['name'])
         
         # Check if workflow with same name exists in this organization
@@ -83,7 +86,9 @@ class WorkflowService(BaseService):
             nodes=nodes,
             edges=edges,
             status=status,
-            organization_id=organization_id  # ✅ Always include organization_id
+            organization_id=organization_id,
+            is_default=is_default,
+            execution_order=execution_order
         )
         
         return self._workflow_to_dict(workflow)
@@ -100,14 +105,9 @@ class WorkflowService(BaseService):
         workflows = self.repository.get_all()
         return [self._workflow_to_dict(workflow) for workflow in workflows]
     
-    def list_workflows(self, organization_id: str) -> List[Dict[str, Any]]:
+    def list_workflows(self, organization_id: UUID) -> List[Dict[str, Any]]:
         """Get all workflows for a specific organization"""
         workflows = self.repository.get_by_organization(organization_id)
-        return [self._workflow_to_dict(workflow) for workflow in workflows]
-    
-    def get_workflows_by_agent(self, agent_id: str) -> List[Dict[str, Any]]:
-        """Get workflows for a specific agent"""
-        workflows = self.repository.get_by_agent_id(agent_id)
         return [self._workflow_to_dict(workflow) for workflow in workflows]
     
     def update_workflow(self, workflow_id: str, **kwargs) -> Optional[Dict[str, Any]]:
@@ -299,4 +299,25 @@ class WorkflowService(BaseService):
             edges=edges,
             status="draft"
         )
+    
+    def get_default_workflow_for_agent(self, agent_id: str, organization_id: UUID) -> Optional[Dict[str, Any]]:
+        """Get the default workflow for an agent"""
+        workflows = self.repository.get_by_agent_id(agent_id)
+        
+        # Filter by organization and find the default workflow
+        for workflow in workflows:
+            if workflow.organization_id == organization_id and getattr(workflow, 'is_default', False):
+                return self._workflow_to_dict(workflow)
+        
+        return None
+    
+    def get_workflows_for_agent(self, agent_id: str, organization_id: UUID) -> List[Dict[str, Any]]:
+        """Get all workflows for an agent, ordered by execution order"""
+        workflows = self.repository.get_by_agent_id(agent_id)
+        
+        # Filter by organization and sort by execution order
+        org_workflows = [w for w in workflows if w.organization_id == organization_id]
+        org_workflows.sort(key=lambda w: getattr(w, 'execution_order', 999))
+        
+        return [self._workflow_to_dict(workflow) for workflow in org_workflows]
     

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import LLM, LLMCreate, LLMUpdate, ListResponse
 from app.services import LLMService
-from app.api.dependencies import get_llm_service, get_current_user_id, get_current_organization_id
+from app.api.dependencies import get_llm_service
 from app.core.exceptions import NotFoundError, ConflictError
 from app.middleware.authorization import (
     RequireLLMCreate, RequireLLMRead, RequireLLMUpdate, RequireLLMDelete
@@ -29,11 +29,11 @@ async def list_llms(
 @router.post("", response_model=LLM, status_code=status.HTTP_201_CREATED)
 async def create_llm(
     llm: LLMCreate,
-    user_id: str = Depends(get_current_user_id),
-    organization_id: str = Depends(get_current_organization_id),
+    auth: tuple = Depends(RequireLLMCreate),
     llm_service: LLMService = Depends(get_llm_service)
 ):
     """Create a new LLM configuration"""
+    user_id, organization_id = auth
     try:
         created_llm = llm_service.create_llm(
             organization_id=organization_id,

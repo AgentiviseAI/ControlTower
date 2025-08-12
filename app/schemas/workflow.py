@@ -13,6 +13,8 @@ class WorkflowBase(BaseModel):
     nodes: Optional[List[Dict[str, Any]]] = []
     edges: Optional[List[Dict[str, Any]]] = []
     agent_id: Optional[str] = None
+    is_default: bool = False  # Mark as default workflow for agent
+    execution_order: int = 0  # Order of execution (0 = highest priority)
 
 
 class WorkflowCreate(WorkflowBase):
@@ -27,6 +29,8 @@ class WorkflowUpdate(BaseModel):
     nodes: Optional[List[Dict[str, Any]]] = None
     edges: Optional[List[Dict[str, Any]]] = None
     agent_id: Optional[str] = None
+    is_default: Optional[bool] = None  # Allow updating default status
+    execution_order: Optional[int] = None  # Allow updating execution order
     # organization_id cannot be changed after creation
 
 

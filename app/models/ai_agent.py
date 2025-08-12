@@ -19,7 +19,7 @@ class AIAgent(BaseModel):
     description = Column(Text)
     enabled = Column(Boolean, default=True)
     preview_enabled = Column(Boolean, default=False)
-    workflow_id = Column(String(36), nullable=True)
+    # Removed workflow_id - workflows now reference agents with is_default flag
     
     # Relationships
     organization: Mapped["Organization"] = relationship("Organization", back_populates="agents")

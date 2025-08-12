@@ -53,13 +53,21 @@ class AuthorizationService:
         logger.debug(f"👥 Looking up role for user '{user_id}' in organization '{organization_id}'")
         
         try:
+            # Convert string IDs to UUIDs for the repository call
+            from uuid import UUID
+            user_uuid = UUID(user_id)
+            organization_uuid = UUID(organization_id)
+            
             # Use the organization repository to get user role
-            role = self.org_repo.get_user_role_in_organization(organization_id, user_id)
+            role = self.org_repo.get_user_role_in_organization(organization_uuid, user_uuid)
             role_value = role.value if role else None
             
             logger.debug(f"📋 Role lookup result: {role_value}")
             return role_value
             
+        except ValueError as e:
+            logger.error(f"❌ Invalid UUID format: {e}")
+            return None
         except Exception as e:
             logger.error(f"❌ Error looking up user role: {e}")
             logger.exception("Full traceback:")

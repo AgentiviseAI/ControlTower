@@ -44,7 +44,7 @@ class OrganizationService(BaseService):
         
         return organization
     
-    def get_organization_by_id(self, organization_id: str) -> Optional[Organization]:
+    def get_organization_by_id(self, organization_id: UUID) -> Optional[Organization]:
         """Get organization by ID"""
         return self.repository.get_organization_by_id(organization_id)
     
@@ -68,13 +68,13 @@ class OrganizationService(BaseService):
         
         return organizations
     
-    def get_organization_users(self, organization_id: str) -> List[OrganizationUser]:
+    def get_organization_users(self, organization_id: UUID) -> List[OrganizationUser]:
         """Get all users in an organization"""
         return self.repository.get_organization_users(organization_id)
     
     def add_user_to_organization(
         self, 
-        organization_id: str, 
+        organization_id: UUID, 
         user_id: UUID, 
         role: OrganizationRole
     ) -> OrganizationUser:
@@ -93,13 +93,13 @@ class OrganizationService(BaseService):
     
     def get_user_role_in_organization(
         self, 
-        organization_id: str, 
+        organization_id: UUID, 
         user_id: UUID
     ) -> Optional[OrganizationRole]:
         """Get user's role in an organization"""
         return self.repository.get_user_role_in_organization(organization_id, user_id)
     
-    def remove_user_from_organization(self, organization_id: str, user_id: UUID):
+    def remove_user_from_organization(self, organization_id: UUID, user_id: UUID):
         """Remove a user from an organization"""
         # Check if user is in organization
         role = self.repository.get_user_role_in_organization(organization_id, user_id)
@@ -114,7 +114,7 @@ class OrganizationService(BaseService):
     
     def user_has_access_to_organization(
         self, 
-        organization_id: str, 
+        organization_id: UUID, 
         user_id: UUID
     ) -> bool:
         """Check if user has access to an organization"""
@@ -123,7 +123,7 @@ class OrganizationService(BaseService):
     
     def user_is_admin_or_owner(
         self, 
-        organization_id: str, 
+        organization_id: UUID, 
         user_id: UUID
     ) -> bool:
         """Check if user is admin or owner of an organization"""

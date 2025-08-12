@@ -3,6 +3,7 @@ API Dependencies and utilities
 """
 import logging
 from typing import Generator
+from uuid import UUID
 from fastapi import Depends, HTTPException, status, Header, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -29,12 +30,18 @@ async def get_current_user_id(
     x_user_id: str = Header(None, alias="X-User-ID"),
     x_service: str = Header(None, alias="X-Service"),
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-) -> str:
-    """Validate JWT token or handle internal service calls and return user ID"""
+) -> UUID:
+    """Validate JWT token or handle internal service calls and return user ID as UUID"""
     # Handle internal service calls (from AuthService, etc.)
     if x_user_id and x_service:
         logger.info(f"Internal service call from {x_service} for user {x_user_id}")
-        return x_user_id
+        try:
+            return UUID(x_user_id)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid user ID format in X-User-ID header"
+            )
     
     # Handle regular JWT token validation
     if not credentials:
@@ -47,7 +54,21 @@ async def get_current_user_id(
     try:
         user_data = await auth_client.validate_token(credentials.credentials)
         # Use 'id' field for user ID, fallback to 'sub' for JWT standard compatibility
-        return user_data.get("id") or user_data.get("sub")
+        user_id_str = user_data.get("id") or user_data.get("sub")
+        if not user_id_str:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="User ID not found in token"
+            )
+        try:
+            return UUID(user_id_str)
+        except ValueError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid user ID format in token"
+            )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -58,7 +79,7 @@ async def get_current_user_id(
 
 async def get_current_organization_id(
     request: Request,
-    current_user_id: str = Depends(get_current_user_id)
+    current_user_id: UUID = Depends(get_current_user_id)
 ) -> str:
     """Extract organization_id from x-organization-id header"""
     

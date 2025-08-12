@@ -6,19 +6,22 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import RAGConnector, RAGConnectorCreate, RAGConnectorUpdate, ListResponse
 from app.services import RAGConnectorService
-from app.api.dependencies import get_rag_connector_service, get_current_user_id, get_current_organization_id
+from app.api.dependencies import get_rag_connector_service
 from app.core.exceptions import NotFoundError, ConflictError
+from app.middleware.authorization import (
+    RequireRAGCreate, RequireRAGRead, RequireRAGUpdate, RequireRAGDelete
+)
 
 router = APIRouter(prefix="/rag", tags=["RAG Connectors"])
 
 
 @router.get("/connectors", response_model=ListResponse)
 async def list_rag_connectors(
-    user_id: str = Depends(get_current_user_id),
-    organization_id: str = Depends(get_current_organization_id),
+    auth: tuple = Depends(RequireRAGRead),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """List all RAG connectors for the current organization"""
+    user_id, organization_id = auth
     connectors = rag_service.list_connectors(organization_id)
     return ListResponse(items=connectors, total=len(connectors))
 
@@ -26,11 +29,11 @@ async def list_rag_connectors(
 @router.post("/connectors", response_model=RAGConnector, status_code=status.HTTP_201_CREATED)
 async def create_rag_connector(
     connector: RAGConnectorCreate,
-    user_id: str = Depends(get_current_user_id),
-    organization_id: str = Depends(get_current_organization_id),
+    auth: tuple = Depends(RequireRAGCreate),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Create a new RAG connector"""
+    user_id, organization_id = auth
     try:
         created_connector = rag_service.create_connector(
             organization_id=organization_id,
@@ -44,10 +47,11 @@ async def create_rag_connector(
 @router.get("/connectors/{connector_id}", response_model=RAGConnector)
 async def get_rag_connector(
     connector_id: str,
-
+    auth: tuple = Depends(RequireRAGRead),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Get a specific RAG connector"""
+    user_id, organization_id = auth
     try:
         connector = rag_service.get_connector(connector_id)
         return connector
@@ -59,10 +63,11 @@ async def get_rag_connector(
 async def update_rag_connector(
     connector_id: str,
     connector: RAGConnectorUpdate,
-
+    auth: tuple = Depends(RequireRAGUpdate),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Update RAG connector configuration"""
+    user_id, organization_id = auth
     try:
         connector_data = connector.dict(exclude_unset=True)
         updated_connector = rag_service.update_connector(connector_id, **connector_data)
@@ -76,10 +81,11 @@ async def update_rag_connector(
 @router.delete("/connectors/{connector_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_rag_connector(
     connector_id: str,
-
+    auth: tuple = Depends(RequireRAGDelete),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Delete a RAG connector"""
+    user_id, organization_id = auth
     try:
         rag_service.delete_connector(connector_id)
     except NotFoundError as e:
@@ -89,10 +95,11 @@ async def delete_rag_connector(
 @router.post("/connectors/{connector_id}/test", response_model=dict)
 async def test_rag_connector(
     connector_id: str,
-
+    auth: tuple = Depends(RequireRAGRead),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Test RAG connector connectivity"""
+    user_id, organization_id = auth
     try:
         result = rag_service.test_connector_connection(connector_id)
         return {"status": "success", "result": result}
@@ -106,10 +113,11 @@ async def test_rag_connector(
 async def create_index(
     connector_id: str,
     index_config: dict,
-
+    auth: tuple = Depends(RequireRAGUpdate),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Create a new index in the RAG connector"""
+    user_id, organization_id = auth
     try:
         result = rag_service.create_index(connector_id, index_config)
         return {"status": "success", "result": result}
@@ -123,10 +131,11 @@ async def create_index(
 async def search_documents(
     connector_id: str,
     search_query: dict,
-
+    auth: tuple = Depends(RequireRAGRead),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Search documents in the RAG connector"""
+    user_id, organization_id = auth
     try:
         results = rag_service.search_documents(connector_id, search_query)
         return {"status": "success", "results": results}
@@ -140,10 +149,11 @@ async def search_documents(
 async def add_documents(
     connector_id: str,
     documents: List[dict],
-
+    auth: tuple = Depends(RequireRAGUpdate),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Add documents to the RAG connector"""
+    user_id, organization_id = auth
     try:
         result = rag_service.add_documents(connector_id, documents)
         return {"status": "success", "result": result}
@@ -156,10 +166,11 @@ async def add_documents(
 @router.get("/connectors/{connector_id}/stats", response_model=dict)
 async def get_connector_stats(
     connector_id: str,
-
+    auth: tuple = Depends(RequireRAGRead),
     rag_service: RAGConnectorService = Depends(get_rag_connector_service)
 ):
     """Get RAG connector statistics"""
+    user_id, organization_id = auth
     try:
         stats = rag_service.get_connector_stats(connector_id)
         return {"connector_id": connector_id, "stats": stats}
@@ -168,8 +179,9 @@ async def get_connector_stats(
 
 
 @router.get("/metrics-config", response_model=dict)
-async def get_rag_metrics_config():
+async def get_rag_metrics_config(auth: tuple = Depends(RequireRAGRead)):
     """Get RAG metrics configuration"""
+    user_id, organization_id = auth
     # Return default RAG metrics configuration
     return {
         "enabled": True,

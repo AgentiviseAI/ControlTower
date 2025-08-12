@@ -3,9 +3,12 @@ Authorization middleware for role-based access control
 """
 from fastapi import Request, HTTPException, status, Depends
 from typing import Tuple
+from uuid import UUID
+from sqlalchemy.orm import Session
 from app.services.authorization_service import AuthorizationService
 from app.api.dependencies import get_current_user_id
 from app.core.exceptions import ForbiddenError
+from app.core.database import get_db
 
 
 class AuthorizationMiddleware:
@@ -21,38 +24,52 @@ class AuthorizationMiddleware:
             action: Action to perform (e.g., 'create', 'read', 'update', 'delete')
         
         Returns:
-            FastAPI dependency function that returns (user_id, organization_id)
+            FastAPI dependency function that returns (user_id, organization_id) where both are UUIDs
         """
         def check_permission(
             request: Request,
-            current_user_id: str = Depends(get_current_user_id)
-        ) -> Tuple[str, str]:
+            db: Session = Depends(get_db),
+            current_user_id: UUID = Depends(get_current_user_id)
+        ) -> Tuple[UUID, UUID]:
             try:
                 # Get organization_id from x-organization-id header (consistent with frontend)
                 # Using lowercase as it's the HTTP standard and what FastAPI normalizes to
-                organization_id = request.headers.get('x-organization-id')
+                organization_id_str = request.headers.get('x-organization-id')
                 
-                if not organization_id:
+                if not organization_id_str:
                     # Use default test organization for development/testing
-                    organization_id = "dev-org-001"
-                    print(f"[AUTH] No x-organization-id header found, using default organization: {organization_id}")
+                    organization_id_str = "bb5a9afd-336a-445e-99ce-e81b9d444b76"  # Default UUID format
+                    print(f"[AUTH] No x-organization-id header found, using default organization: {organization_id_str}")
                 else:
-                    print(f"[AUTH] Found organization_id in header: {organization_id}")
+                    print(f"[AUTH] Found organization_id in header: {organization_id_str}")
                 
-                print(f"[AUTH] Checking permissions for user: {current_user_id}, org: {organization_id}, resource: {resource}, action: {action}")
-                
-                # Create authorization service with proper resource management
-                with AuthorizationService() as auth_service:
-                    # Authorize the request using the already-validated user_id
-                    user_id = auth_service.authorize_request(
-                        user_id=current_user_id,
-                        organization_id=organization_id,
-                        resource=resource,
-                        action=action
+                # Convert string to UUID
+                try:
+                    organization_id = UUID(organization_id_str)
+                except ValueError:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid organization ID format: {organization_id_str}"
                     )
-                    
-                    print(f"[AUTH] Authorization successful for user: {user_id}")
-                    return user_id, organization_id
+                
+                # Convert user_id to UUID as well (it's already a UUID from get_current_user_id)
+                user_id_uuid = current_user_id
+                
+                print(f"[AUTH] Checking permissions for user: {user_id_uuid}, org: {organization_id}, resource: {resource}, action: {action}")
+                
+                # Create authorization service using the shared database session
+                auth_service = AuthorizationService(db)
+                
+                # Authorize the request using the already-validated user_id
+                user_id = auth_service.authorize_request(
+                    user_id=str(current_user_id),  # AuthorizationService expects string
+                    organization_id=str(organization_id),  # AuthorizationService expects string
+                    resource=resource,
+                    action=action
+                )
+                
+                print(f"[AUTH] Authorization successful for user: {user_id}")
+                return user_id_uuid, organization_id  # Return both as UUIDs
                 
             except ForbiddenError as e:
                 raise HTTPException(
@@ -83,3 +100,15 @@ RequireWorkflowCreate = AuthorizationMiddleware.create_permission_dependency("wo
 RequireWorkflowRead = AuthorizationMiddleware.create_permission_dependency("workflows", "read")
 RequireWorkflowUpdate = AuthorizationMiddleware.create_permission_dependency("workflows", "update")
 RequireWorkflowDelete = AuthorizationMiddleware.create_permission_dependency("workflows", "delete")
+
+# MCP Tools permissions
+RequireMCPCreate = AuthorizationMiddleware.create_permission_dependency("mcp", "create")
+RequireMCPRead = AuthorizationMiddleware.create_permission_dependency("mcp", "read")
+RequireMCPUpdate = AuthorizationMiddleware.create_permission_dependency("mcp", "update")
+RequireMCPDelete = AuthorizationMiddleware.create_permission_dependency("mcp", "delete")
+
+# RAG Connectors permissions
+RequireRAGCreate = AuthorizationMiddleware.create_permission_dependency("rag", "create")
+RequireRAGRead = AuthorizationMiddleware.create_permission_dependency("rag", "read")
+RequireRAGUpdate = AuthorizationMiddleware.create_permission_dependency("rag", "update")
+RequireRAGDelete = AuthorizationMiddleware.create_permission_dependency("rag", "delete")

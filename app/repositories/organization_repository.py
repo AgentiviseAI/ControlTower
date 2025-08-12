@@ -38,7 +38,6 @@ class OrganizationRepository(BaseRepository):
     def create_organization(self, name: str, description: Optional[str] = None, is_personal: bool = False) -> Organization:
         """Create a new organization"""
         organization = Organization(
-            id=str(uuid4()),
             name=name,
             description=description,
             is_personal=is_personal,
@@ -51,7 +50,7 @@ class OrganizationRepository(BaseRepository):
         self.db.refresh(organization)
         return organization
     
-    def get_organization_by_id(self, organization_id: str) -> Optional[Organization]:
+    def get_organization_by_id(self, organization_id: UUID) -> Optional[Organization]:
         """Get organization by ID"""
         return self.db.query(Organization).filter(Organization.id == organization_id).first()
     
@@ -61,13 +60,13 @@ class OrganizationRepository(BaseRepository):
     
     def add_user_to_organization(
         self, 
-        organization_id: str, 
+        organization_id: UUID, 
         user_id: UUID, 
         role: OrganizationRole
     ) -> OrganizationUser:
         """Add a user to an organization with a specific role"""
         org_user = OrganizationUser(
-            organization_id=UUID(organization_id) if isinstance(organization_id, str) else organization_id,
+            organization_id=organization_id,
             user_id=user_id,
             role=role,
             created_at=datetime.utcnow(),
@@ -86,7 +85,7 @@ class OrganizationRepository(BaseRepository):
             .filter(Organization.status == OrganizationStatus.ACTIVE)\
             .all()
     
-    def get_organization_users(self, organization_id: str) -> List[OrganizationUser]:
+    def get_organization_users(self, organization_id: UUID) -> List[OrganizationUser]:
         """Get all users in an organization"""
         return self.db.query(OrganizationUser)\
             .filter(OrganizationUser.organization_id == organization_id)\
@@ -95,7 +94,7 @@ class OrganizationRepository(BaseRepository):
     
     def get_user_role_in_organization(
         self, 
-        organization_id: str, 
+        organization_id: UUID, 
         user_id: UUID
     ) -> Optional[OrganizationRole]:
         """Get user's role in an organization"""
@@ -105,7 +104,7 @@ class OrganizationRepository(BaseRepository):
             .first()
         return result[0] if result else None
     
-    def remove_user_from_organization(self, organization_id: str, user_id: UUID):
+    def remove_user_from_organization(self, organization_id: UUID, user_id: UUID):
         """Remove a user from an organization"""
         org_user = self.db.query(OrganizationUser)\
             .filter(OrganizationUser.organization_id == organization_id)\

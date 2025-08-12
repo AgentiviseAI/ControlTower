@@ -1,7 +1,7 @@
 """
 Workflow model with organization support
 """
-from sqlalchemy import Column, String, Text, JSON, ForeignKey
+from sqlalchemy import Column, String, Text, JSON, ForeignKey, Boolean, Integer
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .base import BaseModel
@@ -13,10 +13,12 @@ class Workflow(BaseModel):
     organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
-    agent_id = Column(String(36), nullable=True)  # Link to agent
+    agent_id = Column(UUID(as_uuid=True), nullable=True)  # Link to agent as UUID
     nodes = Column(JSON)  # Store workflow configuration
     edges = Column(JSON)  # Store workflow edges/connections
     status = Column(String(50), default="draft")
+    is_default = Column(Boolean, default=False)  # Mark as default workflow for agent
+    execution_order = Column(Integer, default=0)  # Order of execution (0 = highest priority)
     
     # Relationships
     organization = relationship("Organization", back_populates="workflows")

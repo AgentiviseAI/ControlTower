@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import Workflow, WorkflowCreate, WorkflowUpdate, ListResponse
 from app.services import WorkflowService
-from app.api.dependencies import get_workflow_service, get_current_user_id, get_current_organization_id
+from app.api.dependencies import get_workflow_service
 from app.core.exceptions import NotFoundError, ConflictError
 from app.middleware.authorization import (
     RequireWorkflowCreate, RequireWorkflowRead, RequireWorkflowUpdate, RequireWorkflowDelete
@@ -29,11 +29,11 @@ async def list_workflows(
 @router.post("", response_model=Workflow, status_code=status.HTTP_201_CREATED)
 async def create_workflow(
     workflow: WorkflowCreate,
-    user_id: str = Depends(get_current_user_id),
-    organization_id: str = Depends(get_current_organization_id),
+    auth: tuple = Depends(RequireWorkflowCreate),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Create a new workflow"""
+    user_id, organization_id = auth
     try:
         # Convert the entire workflow to dict first, then extract nested objects
         workflow_dict = workflow.dict()
@@ -55,10 +55,10 @@ async def create_workflow(
 @router.get("/node-options", response_model=dict)
 async def get_workflow_node_options(
     auth: tuple = Depends(RequireWorkflowRead),
-
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Get available options for workflow nodes (LLMs, RAG connectors, MCP tools)"""
+    user_id, organization_id = auth
     try:
         options = workflow_service.get_node_options()
         return options
@@ -69,10 +69,11 @@ async def get_workflow_node_options(
 @router.get("/{workflow_id}", response_model=Workflow)
 async def get_workflow(
     workflow_id: str,
-
+    auth: tuple = Depends(RequireWorkflowRead),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Get a specific workflow"""
+    user_id, organization_id = auth
     try:
         workflow = workflow_service.get_workflow(workflow_id)
         return workflow
@@ -84,10 +85,11 @@ async def get_workflow(
 async def update_workflow(
     workflow_id: str,
     workflow: WorkflowUpdate,
-
+    auth: tuple = Depends(RequireWorkflowUpdate),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Update a workflow"""
+    user_id, organization_id = auth
     try:
         # Convert Pydantic model to plain dict to avoid serialization issues
         update_data = workflow.dict(exclude_unset=True)
@@ -101,10 +103,11 @@ async def update_workflow(
 @router.delete("/{workflow_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_workflow(
     workflow_id: str,
-
+    auth: tuple = Depends(RequireWorkflowDelete),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
     """Delete a workflow"""
+    user_id, organization_id = auth
     try:
         workflow_service.delete_workflow(workflow_id)
     except NotFoundError as e:

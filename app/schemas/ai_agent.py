@@ -11,7 +11,7 @@ class AIAgentBase(BaseModel):
     description: Optional[str] = None
     enabled: bool = True
     preview_enabled: bool = False
-    workflow_id: Optional[str] = None
+    # Removed workflow_id - workflows now reference agents with is_default flag
 
 
 class AIAgentCreate(AIAgentBase):
@@ -23,13 +23,14 @@ class AIAgentUpdate(BaseModel):
     description: Optional[str] = None
     enabled: Optional[bool] = None
     preview_enabled: Optional[bool] = None
-    workflow_id: Optional[str] = None
+    # Removed workflow_id - workflows now reference agents with is_default flag
     # organization_id cannot be changed after creation
 
 
 class AIAgent(AIAgentBase):
     id: str
     organization_id: str
+    workflow_id: Optional[str] = None  # Default workflow ID for this agent
     created_at: datetime
     updated_at: datetime
 
