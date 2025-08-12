@@ -112,3 +112,9 @@ RequireRAGCreate = AuthorizationMiddleware.create_permission_dependency("rag", "
 RequireRAGRead = AuthorizationMiddleware.create_permission_dependency("rag", "read")
 RequireRAGUpdate = AuthorizationMiddleware.create_permission_dependency("rag", "update")
 RequireRAGDelete = AuthorizationMiddleware.create_permission_dependency("rag", "delete")
+
+# Security Roles permissions
+RequireRoleCreate = AuthorizationMiddleware.create_permission_dependency("roles", "create")
+RequireRoleRead = AuthorizationMiddleware.create_permission_dependency("roles", "read")
+RequireRoleUpdate = AuthorizationMiddleware.create_permission_dependency("roles", "update")
+RequireRoleDelete = AuthorizationMiddleware.create_permission_dependency("roles", "delete")

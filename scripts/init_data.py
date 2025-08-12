@@ -3,6 +3,7 @@ Initialize database with sample data
 """
 from app.core.database import get_db, create_tables
 from app.repositories import SecurityRoleRepository
+from app.models.security_role import RoleType
 from datetime import datetime
 
 
@@ -25,13 +26,14 @@ def initialize_sample_data():
             print("Security roles already exist, skipping initialization")
             return
         
-        print("Initializing security roles...")
+        print("Initializing system security roles...")
         
-        # Create sample security roles
+        # Create sample security roles as SYSTEM roles
         role_repo.create(
             name="OWNER",
             description="Organization owner with full administrative privileges",
             status="active",
+            type=RoleType.SYSTEM,
             permissions={
                 "agents": ["create", "read", "update", "delete", "execute"],
                 "llms": ["create", "read", "update", "delete", "configure"],
@@ -39,7 +41,7 @@ def initialize_sample_data():
                 "rag": ["create", "read", "update", "delete", "configure"],
                 "workflows": ["create", "read", "update", "delete", "deploy"],
                 "metrics": ["read", "configure"],
-                "security": ["read", "configure", "manage_users", "manage_roles", "manage_organization"]
+                "roles": ["create", "read", "update", "delete"]
             }
         )
         
@@ -47,6 +49,7 @@ def initialize_sample_data():
             name="ADMIN",
             description="Full system administrator with all permissions",
             status="active",
+            type=RoleType.SYSTEM,
             permissions={
                 "agents": ["create", "read", "update", "delete", "execute"],
                 "llms": ["create", "read", "update", "delete", "configure"],
@@ -54,11 +57,11 @@ def initialize_sample_data():
                 "rag": ["create", "read", "update", "delete", "configure"],
                 "workflows": ["create", "read", "update", "delete", "deploy"],
                 "metrics": ["read", "configure"],
-                "security": ["read", "configure", "manage_users", "manage_roles"]
+                "roles": ["create", "read", "update", "delete"]
             }
         )        
                 
-        print("Security roles initialized successfully!")
+        print("System security roles initialized successfully!")
         
     except Exception as e:
         print(f"Error initializing security roles: {e}")
