@@ -50,7 +50,7 @@ class AuthorizationService:
     
     def get_user_role_in_organization(self, user_id: str, organization_id: str) -> Optional[str]:
         """Get user's role in the specified organization"""
-        logger.debug(f"👥 Looking up role for user '{user_id}' in organization '{organization_id}'")
+        logger.debug(f" Looking up role for user '{user_id}' in organization '{organization_id}'")
         
         try:
             # Convert string IDs to UUIDs for the repository call
@@ -75,7 +75,7 @@ class AuthorizationService:
     
     def get_role_permissions(self, role_name: str) -> Dict[str, List[str]]:
         """Get permissions for a role"""
-        logger.debug(f"🔑 Looking up permissions for role '{role_name}'")
+        logger.debug(f" Looking up permissions for role '{role_name}'")
         
         try:
             # First try exact match
@@ -83,19 +83,19 @@ class AuthorizationService:
             
             # If no exact match, try case-insensitive search
             if not role:
-                logger.debug(f"🔍 Exact match not found for '{role_name}', trying case-insensitive search...")
+                logger.debug(f" Exact match not found for '{role_name}', trying case-insensitive search...")
                 # Try with capitalized first letter (e.g., "owner" -> "Owner")
                 capitalized_name = role_name.capitalize()
                 role = self.role_repo.get_by_name(capitalized_name)
                 
                 if role:
-                    logger.debug(f"✅ Found role with capitalized name: '{capitalized_name}'")
+                    logger.debug(f" Found role with capitalized name: '{capitalized_name}'")
                 else:
                     # Try uppercase (e.g., "owner" -> "OWNER")
                     upper_name = role_name.upper()
                     role = self.role_repo.get_by_name(upper_name)
                     if role:
-                        logger.debug(f"✅ Found role with uppercase name: '{upper_name}'")
+                        logger.debug(f" Found role with uppercase name: '{upper_name}'")
             
             if role:
                 permissions = role.permissions
@@ -124,7 +124,7 @@ class AuthorizationService:
         Returns:
             True if user has permission, False otherwise
         """
-        logger.debug(f"🔍 Checking permission for user_id='{user_id}', organization_id='{organization_id}', resource='{resource}', action='{action}'")
+        logger.debug(f" Checking permission for user_id='{user_id}', organization_id='{organization_id}', resource='{resource}', action='{action}'")
         
         # Get user's role in organization
         role_name = self.get_user_role_in_organization(user_id, organization_id)
@@ -168,10 +168,10 @@ class AuthorizationService:
         Raises:
             ForbiddenError: If user doesn't have permission
         """
-        logger.info(f"🔐 Starting authorization check for user='{user_id}', organization='{organization_id}', resource='{resource}', action='{action}'")
+        logger.info(f"Starting authorization check for user='{user_id}', organization='{organization_id}', resource='{resource}', action='{action}'")
         
         # Check permissions - user is already authenticated by the API dependency layer
-        logger.debug("🔍 Checking user permissions...")
+        logger.debug(" Checking user permissions...")
         try:
             has_permission = self.check_permission(user_id, organization_id, resource, action)
             
