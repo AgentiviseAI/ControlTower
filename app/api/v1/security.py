@@ -22,7 +22,8 @@ async def list_security_roles(
     """List all security roles with full details"""
     user_id, organization_id = auth
     try:
-        roles = security_service.list_roles()
+        # Pass organization_id UUID to get system roles + organization-specific roles
+        roles = security_service.list_roles(organization_id)
         return ListResponse(items=roles, total=len(roles))
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -38,7 +39,8 @@ async def create_organization_role(
     user_id, organization_id = auth
     try:
         role_data = role.dict()
-        created_role = security_service.create_organization_role(role_data)
+        # Pass organization_id UUID to populate organization_id field
+        created_role = security_service.create_organization_role(role_data, organization_id)
         return created_role
     except ConflictError as e:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))

@@ -4,6 +4,7 @@ Security Role schemas
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
+from uuid import UUID
 from app.models.security_role import RoleType
 
 
@@ -12,6 +13,7 @@ class SecurityRoleBase(BaseModel):
     description: Optional[str] = None
     permissions: List[str] = []
     type: Optional[RoleType] = Field(default=RoleType.ORGANIZATION)
+    organization_id: Optional[UUID] = None  # Nullable for system roles
 
 
 class SecurityRoleCreate(SecurityRoleBase):
@@ -23,6 +25,7 @@ class SecurityRoleUpdate(BaseModel):
     description: Optional[str] = None
     permissions: Optional[List[str]] = None
     type: Optional[RoleType] = None
+    organization_id: Optional[UUID] = None
 
 
 class SecurityRole(SecurityRoleBase):
