@@ -8,10 +8,10 @@ from enum import Enum as PyEnum
 from typing import List, Optional, TYPE_CHECKING
 
 from sqlalchemy import Column, String, DateTime, Text, ForeignKey, Enum, Boolean, UniqueConstraint, Integer
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped
 
 from .base import BaseModel
+from app.core.database_types import UniversalID
 
 if TYPE_CHECKING:
     from .ai_agent import AIAgent
@@ -63,8 +63,8 @@ class OrganizationUser(BaseModel):
     """Organization-User association model"""
     __tablename__ = "organization_users"
     
-    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
-    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)  # References AuthService user (UUID)
+    organization_id = Column(UniversalID(), ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(UniversalID(), nullable=False, index=True)  # References AuthService user (UUID)
     role = Column(Enum(OrganizationRole), default=OrganizationRole.MEMBER, nullable=False)
     
     # Timestamps (inherited from BaseModel but override for clarity)

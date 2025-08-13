@@ -2,15 +2,15 @@
 MCP Tool model with organization support
 """
 from sqlalchemy import Column, String, Boolean, Text, JSON, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .base import BaseModel
+from app.core.database_types import UniversalID
 
 
 class MCPTool(BaseModel):
     __tablename__ = "mcp_tools"
 
-    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), nullable=False)
+    organization_id = Column(UniversalID(), ForeignKey('organizations.id'), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
     enabled = Column(Boolean, default=True)

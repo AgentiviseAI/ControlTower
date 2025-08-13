@@ -2,15 +2,15 @@
 LLM model with organization support
 """
 from sqlalchemy import Column, String, Boolean, Text, JSON, Integer, Float, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from .base import BaseModel
+from app.core.database_types import UniversalID
 
 
 class LLM(BaseModel):
     __tablename__ = "llms"
 
-    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), nullable=False)
+    organization_id = Column(UniversalID(), ForeignKey('organizations.id'), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
     

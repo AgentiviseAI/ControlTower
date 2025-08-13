@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = Field(default="", env="ANTHROPIC_API_KEY")
     azure_openai_endpoint: str = Field(default="", env="AZURE_OPENAI_ENDPOINT")
     azure_openai_api_key: str = Field(default="", env="AZURE_OPENAI_API_KEY")
-    auth_service_url: str = Field(default="http://localhost:8001", env="AUTH_SERVICE_URL")
+    auth_service_url: str = Field(default="http://authservice:8000", env="AUTH_SERVICE_URL")
     
     # Logging settings
     log_level: str = Field(default="INFO", env="LOG_LEVEL")

@@ -2,9 +2,9 @@
 Security Role model
 """
 from sqlalchemy import Column, String, Text, JSON, Enum as SQLEnum
-from sqlalchemy.dialects.postgresql import UUID
 from enum import Enum
 from .base import BaseModel
+from app.core.database_types import UniversalID
 
 
 class RoleType(Enum):
@@ -20,4 +20,4 @@ class SecurityRole(BaseModel):
     status = Column(String(50), default="active")
     permissions = Column(JSON)  # Store role permissions
     type = Column(SQLEnum(RoleType), default=RoleType.ORGANIZATION, nullable=False)
-    organization_id = Column(UUID(as_uuid=True), nullable=True)  # Nullable for system roles
+    organization_id = Column(UniversalID(), nullable=True)  # Nullable for system roles

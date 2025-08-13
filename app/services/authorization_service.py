@@ -62,14 +62,14 @@ class AuthorizationService:
             role = self.org_repo.get_user_role_in_organization(organization_uuid, user_uuid)
             role_value = role.value if role else None
             
-            logger.debug(f"📋 Role lookup result: {role_value}")
+            logger.debug(f" Role lookup result: {role_value}")
             return role_value
             
         except ValueError as e:
-            logger.error(f"❌ Invalid UUID format: {e}")
+            logger.error(f" Invalid UUID format: {e}")
             return None
         except Exception as e:
-            logger.error(f"❌ Error looking up user role: {e}")
+            logger.error(f" Error looking up user role: {e}")
             logger.exception("Full traceback:")
             return None
     
@@ -99,14 +99,14 @@ class AuthorizationService:
             
             if role:
                 permissions = role.permissions
-                logger.debug(f"✅ Found permissions for role '{role_name}': {permissions}")
+                logger.debug(f" Found permissions for role '{role_name}': {permissions}")
                 return permissions
             else:
-                logger.warning(f"❌ Role '{role_name}' not found in database (tried: '{role_name}', '{role_name.capitalize()}', '{role_name.upper()}')")
+                logger.warning(f" Role '{role_name}' not found in database (tried: '{role_name}', '{role_name.capitalize()}', '{role_name.upper()}')")
                 return {}
                 
         except Exception as e:
-            logger.error(f"❌ Error looking up role permissions for '{role_name}': {e}")
+            logger.error(f" Error looking up role permissions for '{role_name}': {e}")
             logger.exception("Full traceback:")
             return {}
     
@@ -128,23 +128,23 @@ class AuthorizationService:
         
         # Get user's role in organization
         role_name = self.get_user_role_in_organization(user_id, organization_id)
-        logger.debug(f"📋 User role in organization: {role_name}")
+        logger.debug(f" User role in organization: {role_name}")
         
         if not role_name:
-            logger.warning(f"❌ User '{user_id}' has no role in organization '{organization_id}'")
+            logger.warning(f" User '{user_id}' has no role in organization '{organization_id}'")
             return False
         
         # Get permissions for the role
         permissions = self.get_role_permissions(role_name)
-        logger.debug(f"🔑 Role '{role_name}' permissions: {permissions}")
+        logger.debug(f" Role '{role_name}' permissions: {permissions}")
         
         if not permissions:
-            logger.warning(f"❌ Role '{role_name}' has no permissions defined")
+            logger.warning(f" Role '{role_name}' has no permissions defined")
             return False
         
         # Check if role has permission for the resource and action
         resource_permissions = permissions.get(resource, [])
-        logger.debug(f"📋 Permissions for resource '{resource}': {resource_permissions}")
+        logger.debug(f" Permissions for resource '{resource}': {resource_permissions}")
         
         has_permission = action in resource_permissions
         logger.info(f"{'✅' if has_permission else '❌'} Permission check result: user='{user_id}', role='{role_name}', resource='{resource}', action='{action}' -> {has_permission}")
@@ -176,15 +176,15 @@ class AuthorizationService:
             has_permission = self.check_permission(user_id, organization_id, resource, action)
             
             if not has_permission:
-                logger.warning(f"🚫 Permission denied for user '{user_id}'")
+                logger.warning(f" Permission denied for user '{user_id}'")
                 
                 # Get more detailed information for error message
                 user_role = self.get_user_role_in_organization(user_id, organization_id)
-                logger.debug(f"📋 User role for error context: {user_role}")
+                logger.debug(f" User role for error context: {user_role}")
                 
                 if not user_role:
                     error_msg = f"User is not a member of organization {organization_id}"
-                    logger.error(f"❌ Authorization failed: {error_msg}")
+                    logger.error(f" Authorization failed: {error_msg}")
                     raise ForbiddenError(error_msg)
                 else:
                     # Get role permissions for debugging
@@ -192,19 +192,19 @@ class AuthorizationService:
                     resource_permissions = role_permissions.get(resource, [])
                     
                     error_msg = f"User with role '{user_role}' does not have '{action}' permission for '{resource}'"
-                    logger.error(f"❌ Authorization failed: {error_msg}")
-                    logger.debug(f"📋 Available permissions for resource '{resource}': {resource_permissions}")
-                    logger.debug(f"🔑 All role permissions: {role_permissions}")
+                    logger.error(f" Authorization failed: {error_msg}")
+                    logger.debug(f" Available permissions for resource '{resource}': {resource_permissions}")
+                    logger.debug(f" All role permissions: {role_permissions}")
                     
                     raise ForbiddenError(error_msg)
             
-            logger.info(f"✅ Authorization successful for user '{user_id}' on resource '{resource}' with action '{action}'")
+            logger.info(f" Authorization successful for user '{user_id}' on resource '{resource}' with action '{action}'")
             return user_id
             
         except ForbiddenError:
             # Re-raise authorization errors
             raise
         except Exception as e:
-            logger.error(f"❌ Unexpected error during permission check: {e}")
+            logger.error(f" Unexpected error during permission check: {e}")
             logger.exception("Full traceback:")
             raise ForbiddenError(f"Authorization check failed due to system error: {str(e)}")

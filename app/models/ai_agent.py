@@ -2,10 +2,10 @@
 AI Agent model with organization support
 """
 from sqlalchemy import Column, String, Boolean, Text, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship, Mapped
 from typing import TYPE_CHECKING
 from .base import BaseModel
+from app.core.database_types import UniversalID
 
 if TYPE_CHECKING:
     from .organization import Organization
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class AIAgent(BaseModel):
     __tablename__ = "ai_agents"
 
-    organization_id = Column(UUID(as_uuid=True), ForeignKey('organizations.id'), nullable=False)
+    organization_id = Column(UniversalID(), ForeignKey('organizations.id'), nullable=False)
     name = Column(String(255), nullable=False)
     description = Column(Text)
     enabled = Column(Boolean, default=True)
