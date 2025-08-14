@@ -29,11 +29,17 @@ from .workflow import (
     WorkflowBase, WorkflowCreate, WorkflowUpdate, Workflow
 )
 from .security_role import (
-
     SecurityRoleBase, SecurityRoleCreate, SecurityRoleUpdate, SecurityRole
 )
 from .metrics import (
     MetricsBase, MetricsCreate, MetricsUpdate, Metrics
+)
+from .rest_api import (
+    RestAPICreateRequest, RestAPIUpdateRequest, RestAPIResponse,
+    RestAPIBulkCreateRequest, RestAPIBulkDeleteRequest,
+    RestAPIFromOpenAPIRequest, RestAPIListResponse,
+    RestAPIBulkCreateResponse, RestAPIBulkDeleteResponse,
+    RestAPIQueryParams, HTTPMethod, RestAPIStatus
 )
 
 __all__ = [
@@ -95,4 +101,18 @@ __all__ = [
     "MetricsCreate",
     "MetricsUpdate",
     "Metrics",
+    
+    # REST API
+    "RestAPICreateRequest",
+    "RestAPIUpdateRequest",
+    "RestAPIResponse",
+    "RestAPIBulkCreateRequest",
+    "RestAPIBulkDeleteRequest", 
+    "RestAPIFromOpenAPIRequest",
+    "RestAPIListResponse",
+    "RestAPIBulkCreateResponse",
+    "RestAPIBulkDeleteResponse",
+    "RestAPIQueryParams",
+    "HTTPMethod",
+    "RestAPIStatus",
 ]

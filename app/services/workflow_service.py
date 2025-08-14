@@ -14,11 +14,13 @@ class WorkflowService(BaseService):
     def __init__(self, repository: WorkflowRepository, 
                  llm_service=None, 
                  mcp_service=None, 
-                 rag_service=None):
+                 rag_service=None,
+                 rest_api_service=None):
         super().__init__(repository)
         self.llm_service = llm_service
         self.mcp_service = mcp_service
         self.rag_service = rag_service
+        self.rest_api_service = rest_api_service
     
     def create_workflow(self, organization_id: UUID, name: str, description: str = None, 
                        agent_id: str = None,
@@ -169,7 +171,8 @@ class WorkflowService(BaseService):
         options = {
             "llms": [],
             "mcp_tools": [],
-            "rag_connectors": []
+            "rag_connectors": [],
+            "rest_apis": []
         }
         
         try:
@@ -219,9 +222,28 @@ class WorkflowService(BaseService):
                     for connector in rag_connectors if connector["enabled"]
                 ]
             
+            # Get REST APIs for this organization via REST API service
+            if self.rest_api_service:
+                rest_apis = self.rest_api_service.list_apis(str(organization_id))
+                options["rest_apis"] = [
+                    {
+                        "id": api["id"],
+                        "name": api["name"],
+                        "description": api.get("description", ""),
+                        "method": api["method"],
+                        "base_url": api["base_url"],
+                        "resource_path": api.get("resource_path", ""),
+                        "tags": api.get("tags", []),
+                        "status": api.get("status", "active"),
+                        "enabled": api["enabled"]
+                    }
+                    for api in rest_apis if api["enabled"] and api.get("status") == "active"
+                ]
+            
             self.logger.info(f"Retrieved node options for organization {organization_id}: "
                            f"{len(options['llms'])} LLMs, {len(options['mcp_tools'])} MCP tools, "
-                           f"{len(options['rag_connectors'])} RAG connectors")
+                           f"{len(options['rag_connectors'])} RAG connectors, "
+                           f"{len(options['rest_apis'])} REST APIs")
             
             return options
             

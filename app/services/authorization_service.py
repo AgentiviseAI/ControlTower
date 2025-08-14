@@ -147,7 +147,7 @@ class AuthorizationService:
         logger.debug(f" Permissions for resource '{resource}': {resource_permissions}")
         
         has_permission = action in resource_permissions
-        logger.info(f"{'✅' if has_permission else '❌'} Permission check result: user='{user_id}', role='{role_name}', resource='{resource}', action='{action}' -> {has_permission}")
+        logger.info(f"{'success' if has_permission else 'failed'} Permission check result: user='{user_id}', role='{role_name}', resource='{resource}', action='{action}' -> {has_permission}")
         
         return has_permission
     

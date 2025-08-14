@@ -179,6 +179,7 @@ def init_db():
                 "mcp-tools": ["create", "read", "update", "delete", "configure"],
                 "rag": ["create", "read", "update", "delete", "configure"],
                 "workflows": ["create", "read", "update", "delete", "deploy"],
+                "rest-apis": ["create", "read", "update", "delete"],
                 "metrics": ["read", "configure"],
                 "roles": ["create", "read", "update", "delete"]
             }
@@ -195,6 +196,7 @@ def init_db():
                 "mcp-tools": ["create", "read", "update", "delete", "configure"],
                 "rag": ["create", "read", "update", "delete", "configure"],
                 "workflows": ["create", "read", "update", "delete", "deploy"],
+                "rest-apis": ["create", "read", "update", "delete"],
                 "metrics": ["read", "configure"],
                 "roles": ["create", "read", "update", "delete"]
             }

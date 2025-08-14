@@ -14,86 +14,18 @@ from app.core.auth_client import AuthServiceClient
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
     RAGConnectorRepository, WorkflowRepository, SecurityRoleRepository,
-    MetricsRepository, OrganizationRepository
+    MetricsRepository, OrganizationRepository, RestAPIRepository
 )
 from app.services import (
     AIAgentService, MCPToolService, LLMService,
-    RAGConnectorService, WorkflowService, SecurityService, OrganizationService
+    RAGConnectorService, WorkflowService, SecurityService, OrganizationService,
+    RestAPIService
 )
 
 # Security
 security = HTTPBearer(auto_error=False)
 auth_client = AuthServiceClient()
 logger = logging.getLogger(__name__)
-
-async def get_current_user_id(
-    x_user_id: str = Header(None, alias="X-User-ID"),
-    x_service: str = Header(None, alias="X-Service"),
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
-) -> UUID:
-    """Validate JWT token or handle internal service calls and return user ID as UUID"""
-    # Handle internal service calls (from AuthService, etc.)
-    if x_user_id and x_service:
-        logger.info(f"Internal service call from {x_service} for user {x_user_id}")
-        try:
-            return UUID(x_user_id)
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid user ID format in X-User-ID header"
-            )
-    
-    # Handle regular JWT token validation
-    if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    try:
-        user_data = await auth_client.validate_token(credentials.credentials)
-        # Use 'id' field for user ID, fallback to 'sub' for JWT standard compatibility
-        user_id_str = user_data.get("id") or user_data.get("sub")
-        if not user_id_str:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="User ID not found in token"
-            )
-        try:
-            return UUID(user_id_str)
-        except ValueError:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid user ID format in token"
-            )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-
-async def get_current_organization_id(
-    request: Request,
-    current_user_id: UUID = Depends(get_current_user_id)
-) -> str:
-    """Extract organization_id from x-organization-id header"""
-    
-    organization_id = request.headers.get('x-organization-id')
-    
-    if not organization_id:
-        # Use default test organization for development/testing
-        organization_id = "dev-org-001"
-        logger.info(f"No x-organization-id header found, using default organization: {organization_id}")
-    else:
-        logger.info(f"Found organization_id in header: {organization_id}")
-    
-    return organization_id
-
 
 # Repository Dependencies
 def get_ai_agent_repository(db: Session = Depends(get_db)) -> AIAgentRepository:
@@ -128,6 +60,10 @@ def get_organization_repository(db: Session = Depends(get_db)) -> OrganizationRe
     return OrganizationRepository(db)
 
 
+def get_rest_api_repository(db: Session = Depends(get_db)) -> RestAPIRepository:
+    return RestAPIRepository(db)
+
+
 # Service Dependencies
 def get_llm_service(
     repository: LLMRepository = Depends(get_llm_repository)
@@ -147,13 +83,20 @@ def get_rag_connector_service(
     return RAGConnectorService(repository)
 
 
+def get_rest_api_service(
+    repository: RestAPIRepository = Depends(get_rest_api_repository)
+) -> RestAPIService:
+    return RestAPIService(repository)
+
+
 def get_workflow_service(
     repository: WorkflowRepository = Depends(get_workflow_repository),
     llm_service: LLMService = Depends(get_llm_service),
     mcp_service: MCPToolService = Depends(get_mcp_tool_service),
-    rag_service: RAGConnectorService = Depends(get_rag_connector_service)
+    rag_service: RAGConnectorService = Depends(get_rag_connector_service),
+    rest_api_service: RestAPIService = Depends(get_rest_api_service)
 ) -> WorkflowService:
-    return WorkflowService(repository, llm_service, mcp_service, rag_service)
+    return WorkflowService(repository, llm_service, mcp_service, rag_service, rest_api_service)
 
 
 def get_ai_agent_service(

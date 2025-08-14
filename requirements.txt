@@ -14,3 +14,4 @@ psutil==5.9.6
 email-validator>=1.0.5,<2
 python-dotenv==1.0.0
 httpx>=0.25.0
+aiohttp>=3.8.0,<4.0.0

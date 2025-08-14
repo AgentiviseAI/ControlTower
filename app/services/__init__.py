@@ -9,6 +9,7 @@ from .rag_connector_service import RAGConnectorService
 from .workflow_service import WorkflowService
 from .security_service import SecurityService
 from .organization_service import OrganizationService
+from .rest_api_service import RestAPIService
 
 __all__ = [
     "IService",
@@ -19,4 +20,6 @@ __all__ = [
     "RAGConnectorService",
     "WorkflowService",
     "SecurityService",
+    "OrganizationService",
+    "RestAPIService",
 ]

@@ -10,6 +10,7 @@ from .workflow_repository import WorkflowRepository
 from .security_role_repository import SecurityRoleRepository
 from .metrics_repository import MetricsRepository
 from .organization_repository import OrganizationRepository
+from .rest_api_repository import RestAPIRepository
 
 __all__ = [
     "IRepository",
@@ -22,4 +23,5 @@ __all__ = [
     "SecurityRoleRepository",
     "MetricsRepository",
     "OrganizationRepository",
+    "RestAPIRepository",
 ]

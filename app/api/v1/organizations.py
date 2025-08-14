@@ -5,7 +5,8 @@ from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies import get_current_user_id, get_organization_service, get_ai_agent_service, get_workflow_service, get_llm_service
+from app.api.dependencies import get_organization_service, get_ai_agent_service, get_workflow_service, get_llm_service
+from app.middleware.authorization import get_current_user_id
 from app.services.organization_service import OrganizationService
 from app.services import AIAgentService, WorkflowService, LLMService
 from app.schemas.organization import (
