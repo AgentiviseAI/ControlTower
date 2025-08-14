@@ -145,6 +145,71 @@ def create_tables():
     db_manager.create_tables()
 
 
+def init_db():
+    """Initialize database with default data"""
+    from app.repositories import SecurityRoleRepository
+    from app.models.security_role import RoleType
+    
+    logger.info("Initializing database with default data...")
+    
+    # Get database session
+    db = next(get_db())
+    
+    try:
+        # Initialize repositories
+        role_repo = SecurityRoleRepository(db)
+        
+        # Check if security roles already exist
+        existing_roles = role_repo.get_all()
+        if existing_roles:
+            logger.info("Security roles already exist, skipping initialization")
+            return
+        
+        logger.info("Creating system security roles...")
+        
+        # Create sample security roles as SYSTEM roles
+        role_repo.create(
+            name="OWNER",
+            description="Organization owner with full administrative privileges",
+            status="active",
+            type=RoleType.SYSTEM,
+            permissions={
+                "agents": ["create", "read", "update", "delete", "execute"],
+                "llms": ["create", "read", "update", "delete", "configure"],
+                "mcp-tools": ["create", "read", "update", "delete", "configure"],
+                "rag": ["create", "read", "update", "delete", "configure"],
+                "workflows": ["create", "read", "update", "delete", "deploy"],
+                "metrics": ["read", "configure"],
+                "roles": ["create", "read", "update", "delete"]
+            }
+        )
+        
+        role_repo.create(
+            name="ADMIN",
+            description="Full system administrator with all permissions",
+            status="active",
+            type=RoleType.SYSTEM,
+            permissions={
+                "agents": ["create", "read", "update", "delete", "execute"],
+                "llms": ["create", "read", "update", "delete", "configure"],
+                "mcp-tools": ["create", "read", "update", "delete", "configure"],
+                "rag": ["create", "read", "update", "delete", "configure"],
+                "workflows": ["create", "read", "update", "delete", "deploy"],
+                "metrics": ["read", "configure"],
+                "roles": ["create", "read", "update", "delete"]
+            }
+        )        
+                
+        logger.info("System security roles initialized successfully!")
+        
+    except Exception as e:
+        logger.error(f"Error initializing database: {e}")
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+
+
 # Event listeners for connection management
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):

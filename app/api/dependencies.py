@@ -129,25 +129,10 @@ def get_organization_repository(db: Session = Depends(get_db)) -> OrganizationRe
 
 
 # Service Dependencies
-def get_workflow_service(
-    repository: WorkflowRepository = Depends(get_workflow_repository),
-    llm_repository: LLMRepository = Depends(get_llm_repository),
-    mcp_repository: MCPToolRepository = Depends(get_mcp_tool_repository),
-    rag_repository: RAGConnectorRepository = Depends(get_rag_connector_repository)
-) -> WorkflowService:
-    return WorkflowService(repository, llm_repository, mcp_repository, rag_repository)
-
-
 def get_llm_service(
     repository: LLMRepository = Depends(get_llm_repository)
 ) -> LLMService:
     return LLMService(repository)
-
-
-def get_ai_agent_service(
-    repository: AIAgentRepository = Depends(get_ai_agent_repository)
-) -> AIAgentService:
-    return AIAgentService(repository)
 
 
 def get_mcp_tool_service(
@@ -160,6 +145,21 @@ def get_rag_connector_service(
     repository: RAGConnectorRepository = Depends(get_rag_connector_repository)
 ) -> RAGConnectorService:
     return RAGConnectorService(repository)
+
+
+def get_workflow_service(
+    repository: WorkflowRepository = Depends(get_workflow_repository),
+    llm_service: LLMService = Depends(get_llm_service),
+    mcp_service: MCPToolService = Depends(get_mcp_tool_service),
+    rag_service: RAGConnectorService = Depends(get_rag_connector_service)
+) -> WorkflowService:
+    return WorkflowService(repository, llm_service, mcp_service, rag_service)
+
+
+def get_ai_agent_service(
+    repository: AIAgentRepository = Depends(get_ai_agent_repository)
+) -> AIAgentService:
+    return AIAgentService(repository)
 
 
 def get_security_service(

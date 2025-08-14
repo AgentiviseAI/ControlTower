@@ -30,7 +30,7 @@ class OrganizationService(BaseService):
             raise ValueError(f"Organization with name '{name}' already exists")
         
         # Convert type to boolean for the model
-        is_personal = org_type == "personal"
+        is_personal = org_type.lower() == "personal"
         
         # Create the organization
         organization = self.repository.create_organization(name, description, is_personal)
@@ -41,6 +41,50 @@ class OrganizationService(BaseService):
             owner_user_id,
             OrganizationRole.OWNER
         )
+        
+        return organization
+    
+    def create_organization_with_sample_agent(
+        self,
+        name: str,
+        description: Optional[str],
+        owner_user_id: UUID,
+        org_type: str = "personal",
+        agent_service=None,
+        workflow_service=None,
+        llm_service=None
+    ) -> Organization:
+        """Create a new organization with a sample agent for the user"""
+        # First create the organization
+        organization = self.create_organization(name, description, owner_user_id, org_type)
+        
+        # Only create sample agent for personal organizations
+        if org_type.lower() == "personal" and agent_service and workflow_service and llm_service:
+            try:
+                self.logger.info(f"Creating sample agent for new personal organization: {organization.id}")
+                
+                # Sample agent data
+                sample_agent_data = {
+                    'name': 'Welcome Assistant',
+                    'description': 'Your personal AI assistant to help you get started with the platform. Ask me anything!',
+                    'enabled': True,
+                    'preview_enabled': False
+                }
+                
+                # Use the same method that the API uses to create agent with workflow
+                sample_agent = agent_service.create_agent_with_default_workflow(
+                    agent_data=sample_agent_data,
+                    organization_id=organization.id,
+                    workflow_service=workflow_service,
+                    llm_service=llm_service
+                )
+                
+                self.logger.info(f"Sample agent created successfully: {sample_agent['id']} for organization: {organization.id}")
+                
+            except Exception as e:
+                # Log error but don't fail organization creation
+                self.logger.error(f"Failed to create sample agent for organization {organization.id}: {e}")
+                # Sample agent creation failure shouldn't prevent organization creation
         
         return organization
     

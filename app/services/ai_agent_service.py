@@ -209,12 +209,13 @@ class AIAgentService(BaseService):
     
     def create_agent_with_default_workflow(self, agent_data: Dict[str, Any], 
                                          organization_id: UUID, 
-                                         workflow_service) -> Dict[str, Any]:
+                                         workflow_service, llm_service) -> Dict[str, Any]:
         """Create an AI agent with a default workflow atomically
         
         This simplified approach:
         1. Creates the agent
-        2. Creates default workflow with is_default=True
+        2. Creates the default LLM for the org if it does not exist
+        3. Creates default workflow with is_default=True and LLM node refers to the default LLM
         
         No circular dependency - workflow references agent, not vice versa.
         
@@ -222,6 +223,7 @@ class AIAgentService(BaseService):
             agent_data: Dictionary containing agent creation data
             organization_id: Organization ID for the agent
             workflow_service: Workflow service instance for creating default workflow
+            llm_service: LLM service instance for creating/getting default LLM
             
         Returns:
             Dict containing the created agent
@@ -237,10 +239,15 @@ class AIAgentService(BaseService):
         )
         self.logger.info(f"Created agent: {created_agent}")
         
-        # Step 2: Create default workflow for the agent (workflow references agent)
+        # Step 2: Create or get default LLM for the organization
+        self.logger.info(f"Creating/getting default LLM for organization {organization_id}")
+        default_llm = self._create_or_get_default_llm(organization_id, llm_service)
+        self.logger.info(f"Default LLM: {default_llm}")
+        
+        # Step 3: Create default workflow for the agent (workflow references agent and LLM)
         self.logger.info(f"Creating default workflow for agent {created_agent['id']}")
         default_workflow = self._create_default_workflow(
-            created_agent, agent_data['name'], organization_id, workflow_service
+            created_agent, agent_data['name'], organization_id, workflow_service, default_llm['id']
         )
         self.logger.info(f"Created default workflow: {default_workflow}")
         
@@ -248,8 +255,46 @@ class AIAgentService(BaseService):
         # Return the created agent as-is
         return created_agent
     
+    def _create_or_get_default_llm(self, organization_id: UUID, llm_service) -> Dict[str, Any]:
+        """Create or get the default TinyLlama LLM for the organization"""
+        try:
+            # Try to get existing default LLM
+            existing_llms = llm_service.list_llms(organization_id)
+            for llm in existing_llms:
+                if llm.get('name') == 'TinyLlama' and llm.get('model_name') == 'tinyllama:1.1b-chat':
+                    self.logger.info(f"Found existing default LLM: {llm['id']}")
+                    return llm
+            
+            # Create default LLM if it doesn't exist
+            self.logger.info("Creating default TinyLlama LLM for organization")
+            default_llm_data = {
+                'name': 'TinyLlama',
+                'description': 'Default TinyLlama 1.1B Chat model for agent workflows',
+                'hosting_environment': 'custom_deployment',
+                'custom_deployment_location': 'on_premise',
+                'custom_llm_provider': 'Meta', 
+                'custom_api_endpoint_url': 'http://localhost:11434',
+                'custom_api_compatibility': 'ollama_compatible',
+                'custom_auth_method': 'none',
+                'model_name': 'tinyllama:1.1b-chat',
+                'temperature': 0.7,
+                'max_tokens': 2048,
+                'top_p': 0.9,
+                'enabled': True,
+                'status': 'active'
+            }
+            
+            return llm_service.create_llm(
+                organization_id=organization_id,
+                **default_llm_data
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error creating/getting default LLM: {e}")
+            raise
+    
     def _create_default_workflow(self, agent: Dict[str, Any], agent_name: str, 
-                                organization_id: UUID, workflow_service) -> Dict[str, Any]:
+                                organization_id: UUID, workflow_service, llm_id: str) -> Dict[str, Any]:
         """Create a default workflow with LLM node for the agent"""
         # Generate unique node IDs
         llm_node_id = str(uuid.uuid4())
@@ -268,15 +313,15 @@ class AIAgentService(BaseService):
             },
             {
                 "id": llm_node_id,
-                "label": "LLM Node",
+                "label": "TinyLlama LLM",
                 "type": "llm",
-                "link": None,
+                "link": llm_id,
                 "position": {"x": 300, "y": 100},
                 "config": {
-                    "model": "gpt-4",
+                    "llm_id": llm_id,  # Reference the default TinyLlama LLM
                     "temperature": 0.7,
-                    "max_tokens": 2000,
-                    "system_prompt": "You are a helpful AI assistant."
+                    "max_tokens": 2048,
+                    "system_prompt": "You are a helpful AI assistant powered by TinyLlama."
                 }
             },
             {

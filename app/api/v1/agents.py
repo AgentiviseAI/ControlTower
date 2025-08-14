@@ -6,8 +6,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.schemas import AIAgent, AIAgentCreate, AIAgentUpdate, Workflow, WorkflowCreate, ListResponse
-from app.services import AIAgentService, WorkflowService
-from app.api.dependencies import get_ai_agent_service, get_workflow_service
+from app.services import AIAgentService, WorkflowService, LLMService
+from app.api.dependencies import get_ai_agent_service, get_workflow_service, get_llm_service
 from app.core.exceptions import NotFoundError, ConflictError
 from app.middleware.authorization import (
     RequireAgentCreate, RequireAgentRead, RequireAgentUpdate, RequireAgentDelete,
@@ -36,6 +36,7 @@ async def create_agent(
     auth: tuple = Depends(RequireAgentCreate),
     agent_service: AIAgentService = Depends(get_ai_agent_service),
     workflow_service: WorkflowService = Depends(get_workflow_service),
+    llm_service: LLMService = Depends(get_llm_service),
     transaction_manager: TransactionManager = Depends(get_transaction_manager)
 ):
     """Create a new AI agent with a default workflow atomically"""
@@ -55,7 +56,8 @@ async def create_agent(
             return agent_service.create_agent_with_default_workflow(
                 agent_data=agent_data,
                 organization_id=organization_id,
-                workflow_service=workflow_service
+                workflow_service=workflow_service,
+                llm_service=llm_service
             )
         
         result = transaction_manager.execute_atomic([atomic_agent_creation])

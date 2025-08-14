@@ -57,10 +57,10 @@ async def get_workflow_node_options(
     auth: tuple = Depends(RequireWorkflowRead),
     workflow_service: WorkflowService = Depends(get_workflow_service)
 ):
-    """Get available options for workflow nodes (LLMs, RAG connectors, MCP tools)"""
+    """Get available options for workflow nodes (LLMs, RAG connectors, MCP tools) from the organization"""
     user_id, organization_id = auth
     try:
-        options = workflow_service.get_node_options()
+        options = workflow_service.get_node_options(organization_id)
         return options
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

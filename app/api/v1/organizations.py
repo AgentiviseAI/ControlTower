@@ -5,8 +5,9 @@ from typing import List
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.api.dependencies import get_current_user_id, get_organization_service
+from app.api.dependencies import get_current_user_id, get_organization_service, get_ai_agent_service, get_workflow_service, get_llm_service
 from app.services.organization_service import OrganizationService
+from app.services import AIAgentService, WorkflowService, LLMService
 from app.schemas.organization import (
     OrganizationCreate,
     OrganizationResponse,
@@ -22,15 +23,21 @@ router = APIRouter(prefix="/organizations", tags=["Organizations"])
 async def create_organization(
     organization_data: OrganizationCreate,
     current_user_id: UUID = Depends(get_current_user_id),
-    service: OrganizationService = Depends(get_organization_service)
+    service: OrganizationService = Depends(get_organization_service),
+    agent_service: AIAgentService = Depends(get_ai_agent_service),
+    workflow_service: WorkflowService = Depends(get_workflow_service),
+    llm_service: LLMService = Depends(get_llm_service)
 ):
     """Create a new organization"""
     try:
-        organization = service.create_organization(
+        organization = service.create_organization_with_sample_agent(
             organization_data.name,
             organization_data.description,
             current_user_id,  # Already UUID from dependency
-            organization_data.type
+            organization_data.type,
+            agent_service,
+            workflow_service,
+            llm_service
         )
         return OrganizationResponse.from_orm(organization)
     except Exception as e:

@@ -102,10 +102,10 @@ RequireWorkflowUpdate = AuthorizationMiddleware.create_permission_dependency("wo
 RequireWorkflowDelete = AuthorizationMiddleware.create_permission_dependency("workflows", "delete")
 
 # MCP Tools permissions
-RequireMCPCreate = AuthorizationMiddleware.create_permission_dependency("mcp", "create")
-RequireMCPRead = AuthorizationMiddleware.create_permission_dependency("mcp", "read")
-RequireMCPUpdate = AuthorizationMiddleware.create_permission_dependency("mcp", "update")
-RequireMCPDelete = AuthorizationMiddleware.create_permission_dependency("mcp", "delete")
+RequireMCPCreate = AuthorizationMiddleware.create_permission_dependency("mcp-tools", "create")
+RequireMCPRead = AuthorizationMiddleware.create_permission_dependency("mcp-tools", "read")
+RequireMCPUpdate = AuthorizationMiddleware.create_permission_dependency("mcp-tools", "update")
+RequireMCPDelete = AuthorizationMiddleware.create_permission_dependency("mcp-tools", "delete")
 
 # RAG Connectors permissions
 RequireRAGCreate = AuthorizationMiddleware.create_permission_dependency("rag", "create")

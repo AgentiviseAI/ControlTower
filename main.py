@@ -11,7 +11,7 @@ if not os.getenv("ENVIRONMENT"):
     os.environ["ENVIRONMENT"] = "dev"
 
 from app.core.config import settings
-from app.core.database import engine, create_tables
+from app.core.database import engine, create_tables, init_db, get_db
 from app.core.logging import setup_logging, get_logger
 from fastapi.middleware.cors import CORSMiddleware
 from app.middleware import LoggingMiddleware, MetricsMiddleware
@@ -31,6 +31,8 @@ async def lifespan(app: FastAPI):
     logger.info("Starting AI Platform application...")
     create_tables()
     logger.info("Database tables created/verified")
+    init_db()
+    logger.info("Database initialized with default data")
     yield
     # Shutdown
     logger.info("Shutting down AI Platform application...")
