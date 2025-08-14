@@ -7,6 +7,7 @@ from .mcp_tool_repository import MCPToolRepository
 from .llm_repository import LLMRepository
 from .rag_connector_repository import RAGConnectorRepository
 from .workflow_repository import WorkflowRepository
+from .workflow_component_definition_repository import WorkflowComponentDefinitionRepository
 from .security_role_repository import SecurityRoleRepository
 from .metrics_repository import MetricsRepository
 from .organization_repository import OrganizationRepository
@@ -20,6 +21,7 @@ __all__ = [
     "LLMRepository", 
     "RAGConnectorRepository",
     "WorkflowRepository",
+    "WorkflowComponentDefinitionRepository",
     "SecurityRoleRepository",
     "MetricsRepository",
     "OrganizationRepository",

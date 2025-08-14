@@ -41,6 +41,13 @@ from .rest_api import (
     RestAPIBulkCreateResponse, RestAPIBulkDeleteResponse,
     RestAPIQueryParams, HTTPMethod, RestAPIStatus
 )
+from .workflow_component_definition import (
+    WorkflowComponentDefinitionBase, WorkflowComponentDefinitionCreateRequest,
+    WorkflowComponentDefinitionUpdateRequest, WorkflowComponentDefinitionResponse,
+    WorkflowComponentDefinitionListResponse, WorkflowComponentBulkCreateRequest,
+    WorkflowComponentBulkCreateResponse, CategorySortOrderUpdateRequest,
+    ComponentSearchRequest, PortDefinition
+)
 
 __all__ = [
     # Base
@@ -115,4 +122,16 @@ __all__ = [
     "RestAPIQueryParams",
     "HTTPMethod",
     "RestAPIStatus",
+    
+    # Workflow Component Definition
+    "WorkflowComponentDefinitionBase",
+    "WorkflowComponentDefinitionCreateRequest",
+    "WorkflowComponentDefinitionUpdateRequest",
+    "WorkflowComponentDefinitionResponse",
+    "WorkflowComponentDefinitionListResponse",
+    "WorkflowComponentBulkCreateRequest",
+    "WorkflowComponentBulkCreateResponse",
+    "CategorySortOrderUpdateRequest",
+    "ComponentSearchRequest",
+    "PortDefinition",
 ]

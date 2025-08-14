@@ -13,13 +13,13 @@ from app.core.database import get_db, SessionLocal
 from app.core.auth_client import AuthServiceClient
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
-    RAGConnectorRepository, WorkflowRepository, SecurityRoleRepository,
-    MetricsRepository, OrganizationRepository, RestAPIRepository
+    RAGConnectorRepository, WorkflowRepository, WorkflowComponentDefinitionRepository,
+    SecurityRoleRepository, MetricsRepository, OrganizationRepository, RestAPIRepository
 )
 from app.services import (
     AIAgentService, MCPToolService, LLMService,
-    RAGConnectorService, WorkflowService, SecurityService, OrganizationService,
-    RestAPIService
+    RAGConnectorService, WorkflowService, WorkflowComponentDefinitionService,
+    SecurityService, OrganizationService, RestAPIService
 )
 
 # Security
@@ -62,6 +62,10 @@ def get_organization_repository(db: Session = Depends(get_db)) -> OrganizationRe
 
 def get_rest_api_repository(db: Session = Depends(get_db)) -> RestAPIRepository:
     return RestAPIRepository(db)
+
+
+def get_workflow_component_definition_repository(db: Session = Depends(get_db)) -> WorkflowComponentDefinitionRepository:
+    return WorkflowComponentDefinitionRepository(db)
 
 
 # Service Dependencies
@@ -115,3 +119,9 @@ def get_organization_service(
     repository: OrganizationRepository = Depends(get_organization_repository)
 ) -> OrganizationService:
     return OrganizationService(repository)
+
+
+def get_workflow_component_definition_service(
+    repository: WorkflowComponentDefinitionRepository = Depends(get_workflow_component_definition_repository)
+) -> WorkflowComponentDefinitionService:
+    return WorkflowComponentDefinitionService(repository)

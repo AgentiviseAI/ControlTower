@@ -8,6 +8,7 @@ from .mcp_tool import MCPTool
 from .llm import LLM
 from .rag_connector import RAGConnector
 from .workflow import Workflow
+from .workflow_component_definition import WorkflowComponentDefinition
 from .security_role import SecurityRole
 from .metrics import Metrics
 from .rest_api import RestAPI
@@ -23,6 +24,7 @@ __all__ = [
     "LLM",
     "RAGConnector",
     "Workflow",
+    "WorkflowComponentDefinition",
     "SecurityRole",
     "Metrics",
     "RestAPI"
