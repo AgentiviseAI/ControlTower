@@ -124,7 +124,7 @@ async def list_rest_apis(
     rest_api_service: RestAPIService = Depends(get_rest_api_service),
     tags: Optional[str] = Query(None, description="Comma-separated list of tags to filter by"),
     method: Optional[HTTPMethod] = Query(None, description="Filter by HTTP method"),
-    status: Optional[RestAPIStatus] = Query(None, description="Filter by status"),
+    api_status: Optional[RestAPIStatus] = Query(None, description="Filter by status"),
     enabled: Optional[bool] = Query(None, description="Filter by enabled status"),
     search: Optional[str] = Query(None, description="Search term for API names"),
     limit: int = Query(100, ge=1, le=1000, description="Maximum number of results"),
@@ -145,8 +145,8 @@ async def list_rest_apis(
         if method:
             apis = [api for api in apis if api.get('method') == method.value]
         
-        if status:
-            apis = [api for api in apis if api.get('status') == status.value]
+        if api_status:
+            apis = [api for api in apis if api.get('status') == api_status.value]
         
         if enabled is not None:
             apis = [api for api in apis if api.get('enabled') == enabled]

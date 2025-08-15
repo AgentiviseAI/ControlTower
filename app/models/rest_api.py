@@ -23,6 +23,9 @@ class RestAPI(BaseModel):
     method = Column(String(10), nullable=False, default="GET")  # HTTP method
     resource_path = Column(String(500), nullable=True)  # Resource endpoint path
     
+    # Intelligence Configuration
+    intel_link = Column(UniversalID(), nullable=True)  # LLM ID for intelligent request building
+    
     # Request/Response Configuration
     request_schema = Column(JSON, nullable=True)  # JSON schema for request payload
     response_schema = Column(JSON, nullable=True)  # JSON schema for response

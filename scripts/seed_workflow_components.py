@@ -78,13 +78,76 @@ COMPONENT_DEFINITIONS = [
         'tags': ['ai', 'llm', 'generation']
     },
     {
+        'component_id': 'intent_extractor',
+        'name': 'Intent Extractor',
+        'category': 'AI Models',
+        'description': 'Extract user intents using LLM with customizable system prompts',
+        'icon_name': 'EyeOutlined',
+        'color': '#722ed1',
+        'sort_order': 2,
+        'config_schema': {
+            'type': 'object',
+            'properties': {
+                'link': {
+                    'type': 'string',
+                    'title': 'LLM Selection',
+                    'description': 'Select the LLM to use for intent extraction'
+                },
+                'system_prompt': {
+                    'type': 'string',
+                    'title': 'Custom System Prompt',
+                    'description': 'Optional custom instructions to add to the default system prompt',
+                    'format': 'textarea'
+                },
+                'temperature': {
+                    'type': 'number',
+                    'title': 'Temperature',
+                    'description': 'Sampling temperature (lower values for more focused extraction)',
+                    'minimum': 0.0,
+                    'maximum': 2.0,
+                    'default': 0.3
+                },
+                'max_tokens': {
+                    'type': 'integer',
+                    'title': 'Max Tokens',
+                    'description': 'Maximum tokens to generate',
+                    'minimum': 1,
+                    'maximum': 2048,
+                    'default': 500
+                },
+                'top_p': {
+                    'type': 'number',
+                    'title': 'Top P',
+                    'description': 'Nucleus sampling parameter',
+                    'minimum': 0.0,
+                    'maximum': 1.0,
+                    'default': 1.0
+                }
+            },
+            'required': ['link']
+        },
+        'default_config': {
+            'temperature': 0.3,
+            'max_tokens': 500,
+            'top_p': 1.0
+        },
+        'input_ports': [
+            {'name': 'user_input', 'type': 'string', 'description': 'User input to analyze for intent', 'required': True}
+        ],
+        'output_ports': [
+            {'name': 'extracted_intent', 'type': 'string', 'description': 'Extracted intent analysis', 'required': True}
+        ],
+        'implementation_class': 'app.workflow.nodes.intent_extractor_node.IntentExtractorNode',
+        'tags': ['ai', 'llm', 'intent', 'extraction', 'analysis']
+    },
+    {
         'component_id': 'knowledgebase_retriever',
         'name': 'Knowledgebase Retriever',
         'category': 'AI Models',
         'description': 'Knowledge retrieval with search type options',
         'icon_name': 'DatabaseOutlined',
         'color': '#52c41a',
-        'sort_order': 2,
+        'sort_order': 3,
         'config_schema': {
             'type': 'object',
             'properties': {
@@ -357,6 +420,11 @@ COMPONENT_DEFINITIONS = [
                     'type': 'string',
                     'title': 'REST API',
                     'description': 'Select the REST API to call'
+                },
+                'intel_link': {
+                    'type': 'string',
+                    'title': 'Intelligence LLM',
+                    'description': 'Optional LLM for intelligent request processing'
                 },
                 'timeout': {
                     'type': 'integer',
