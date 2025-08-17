@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .llm import LLM
     from .rag_connector import RAGConnector
     from .workflow import Workflow
+    from .intent_data import IntentData
 
 
 class OrganizationRole(PyEnum):
@@ -54,6 +55,7 @@ class Organization(BaseModel):
     llms: Mapped[List["LLM"]] = relationship("LLM", back_populates="organization")
     rag_connectors: Mapped[List["RAGConnector"]] = relationship("RAGConnector", back_populates="organization")
     workflows: Mapped[List["Workflow"]] = relationship("Workflow", back_populates="organization")
+    intent_data: Mapped[List["IntentData"]] = relationship("IntentData", back_populates="organization")
     
     def __repr__(self):
         return f"<Organization(id={self.id}, name='{self.name}', is_personal={self.is_personal})>"

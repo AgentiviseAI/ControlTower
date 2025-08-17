@@ -199,3 +199,6 @@ RequireRestAPICreate = AuthorizationMiddleware.create_permission_dependency("res
 RequireRestAPIRead = AuthorizationMiddleware.create_permission_dependency("rest-apis", "read")
 RequireRestAPIUpdate = AuthorizationMiddleware.create_permission_dependency("rest-apis", "update")
 RequireRestAPIDelete = AuthorizationMiddleware.create_permission_dependency("rest-apis", "delete")
+
+# Intent Data permissions
+RequireIntentDataRead = AuthorizationMiddleware.create_permission_dependency("intent-data", "read")

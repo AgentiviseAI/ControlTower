@@ -14,8 +14,10 @@ from app.core.auth_client import AuthServiceClient
 from app.repositories import (
     AIAgentRepository, MCPToolRepository, LLMRepository,
     RAGConnectorRepository, WorkflowRepository, WorkflowComponentDefinitionRepository,
-    SecurityRoleRepository, MetricsRepository, OrganizationRepository, RestAPIRepository
+    SecurityRoleRepository, MetricsRepository, OrganizationRepository, RestAPIRepository,
+    IntentDataRepository
 )
+from app.repositories.intent_data_repository import IntentDataRepository
 from app.services import (
     AIAgentService, MCPToolService, LLMService,
     RAGConnectorService, WorkflowService, WorkflowComponentDefinitionService,
@@ -64,6 +66,10 @@ def get_rest_api_repository(db: Session = Depends(get_db)) -> RestAPIRepository:
     return RestAPIRepository(db)
 
 
+def get_intent_data_repository(db: Session = Depends(get_db)) -> IntentDataRepository:
+    return IntentDataRepository(db)
+
+
 def get_workflow_component_definition_repository(db: Session = Depends(get_db)) -> WorkflowComponentDefinitionRepository:
     return WorkflowComponentDefinitionRepository(db)
 
@@ -76,9 +82,10 @@ def get_llm_service(
 
 
 def get_mcp_tool_service(
-    repository: MCPToolRepository = Depends(get_mcp_tool_repository)
+    repository: MCPToolRepository = Depends(get_mcp_tool_repository),
+    intent_data_repository: IntentDataRepository = Depends(get_intent_data_repository)
 ) -> MCPToolService:
-    return MCPToolService(repository)
+    return MCPToolService(repository, intent_data_repository)
 
 
 def get_rag_connector_service(
@@ -88,9 +95,10 @@ def get_rag_connector_service(
 
 
 def get_rest_api_service(
-    repository: RestAPIRepository = Depends(get_rest_api_repository)
+    repository: RestAPIRepository = Depends(get_rest_api_repository),
+    intent_data_repository: IntentDataRepository = Depends(get_intent_data_repository)
 ) -> RestAPIService:
-    return RestAPIService(repository)
+    return RestAPIService(repository, intent_data_repository)
 
 
 def get_workflow_service(

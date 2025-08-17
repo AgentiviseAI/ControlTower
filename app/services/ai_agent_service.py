@@ -128,6 +128,64 @@ class AIAgentService(BaseService):
         success = self.repository.delete(agent_id)
         return success
     
+    def delete_agent_with_workflows(self, agent_id: UUID, organization_id: UUID, workflow_service) -> bool:
+        """Delete AI agent and all its associated workflows atomically
+        
+        This method:
+        1. Verifies the agent exists and belongs to the organization
+        2. Gets all workflows for the agent
+        3. Deletes all workflows first (to handle foreign key constraints)
+        4. Deletes the agent
+        
+        Args:
+            agent_id: UUID of the agent to delete
+            organization_id: UUID of the organization
+            workflow_service: Workflow service instance for deleting workflows
+            
+        Returns:
+            bool: True if deletion was successful
+            
+        Raises:
+            NotFoundError: If agent doesn't exist or doesn't belong to organization
+        """
+        self.logger.info(f"Deleting AI agent with workflows: {agent_id} in organization: {organization_id}")
+        
+        # First verify the agent exists and belongs to the organization
+        agent = self.repository.get_by_id(agent_id)
+        if not agent:
+            raise NotFoundError("AI Agent", agent_id)
+        if agent.organization_id != organization_id:
+            raise NotFoundError("AI Agent", agent_id)
+        
+        # Get all workflows for this agent
+        workflows = workflow_service.get_workflows_for_agent(str(agent_id), organization_id)
+        
+        self.logger.info(f"Found {len(workflows)} workflows to delete for agent {agent_id}")
+        
+        # Delete all workflows first (to handle any foreign key constraints)
+        for workflow in workflows:
+            try:
+                workflow_id = workflow.get('id')
+                if workflow_id:
+                    self.logger.info(f"Deleting workflow: {workflow_id} (name: {workflow.get('name', 'Unknown')})")
+                    workflow_service.delete_workflow(workflow_id)
+                else:
+                    self.logger.warning(f"Workflow missing ID, skipping: {workflow}")
+            except Exception as e:
+                self.logger.error(f"Error deleting workflow {workflow_id}: {e}")
+                # Continue with other workflows but log the error
+        
+        # Now delete the agent
+        self.logger.info(f"Deleting agent: {agent_id}")
+        success = self.repository.delete(agent_id)
+        
+        if success:
+            self.logger.info(f"Successfully deleted agent {agent_id} and {len(workflows)} associated workflows")
+        else:
+            self.logger.error(f"Failed to delete agent {agent_id}")
+            
+        return success
+    
     def get_enabled_agents(self, organization_id: UUID) -> List[Dict[str, Any]]:
         """Get all enabled AI agents for organization"""
         agents = self.repository.get_enabled_agents_by_organization(organization_id)

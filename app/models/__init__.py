@@ -12,6 +12,7 @@ from .workflow_component_definition import WorkflowComponentDefinition
 from .security_role import SecurityRole
 from .metrics import Metrics
 from .rest_api import RestAPI
+from .intent_data import IntentData
 
 __all__ = [
     "BaseModel",
@@ -27,5 +28,6 @@ __all__ = [
     "WorkflowComponentDefinition",
     "SecurityRole",
     "Metrics",
-    "RestAPI"
+    "RestAPI",
+    "IntentData"
 ]

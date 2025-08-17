@@ -149,6 +149,10 @@ class BaseRepository(IRepository):
             if db_obj:
                 for field, value in kwargs.items():
                     if value is not None:  # Only update non-None values
+                        # Convert Pydantic URL objects to strings for database storage
+                        # Handle both HttpUrl and Url class names from different Pydantic versions
+                        if hasattr(value, '__class__') and value.__class__.__name__ in ('Url', 'HttpUrl', 'AnyUrl'):
+                            value = str(value)
                         setattr(db_obj, field, value)
                 
                 if auto_commit:

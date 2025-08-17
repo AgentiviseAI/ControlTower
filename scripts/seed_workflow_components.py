@@ -469,43 +469,130 @@ COMPONENT_DEFINITIONS = [
         'tags': ['api', 'rest', 'http', 'integration']
     },
     {
-        'component_id': 'condition',
-        'name': 'Condition',
+        'component_id': 'if_else',
+        'name': 'IF-ELSE',
         'category': 'Logic',
-        'description': 'Conditional branching logic',
+        'description': 'Conditional branching with IF-ELSE logic',
         'icon_name': 'BranchesOutlined',
         'color': '#fa8c16',
         'sort_order': 1,
         'config_schema': {
             'type': 'object',
             'properties': {
-                'condition_type': {
+                'condition_field': {
                     'type': 'string',
-                    'title': 'Condition Type',
-                    'description': 'Type of condition to evaluate',
-                    'enum': ['equals', 'contains', 'greater_than', 'less_than', 'regex', 'custom'],
+                    'title': 'Field to Check',
+                    'description': 'Name of the field in workflow state to evaluate',
+                    'default': 'intent'
+                },
+                'condition_operator': {
+                    'type': 'string',
+                    'title': 'Operator',
+                    'description': 'Comparison operator to use',
+                    'enum': ['equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'ends_with', 'greater_than', 'less_than', 'greater_equal', 'less_equal', 'regex', 'is_empty', 'is_not_empty'],
                     'default': 'equals'
                 },
                 'condition_value': {
                     'type': 'string',
-                    'title': 'Condition Value',
-                    'description': 'Value to compare against'
+                    'title': 'Value to Compare',
+                    'description': 'Value to compare the field against',
+                    'default': ''
                 }
             },
-            'required': ['condition_type', 'condition_value']
+            'required': ['condition_field', 'condition_operator', 'condition_value']
         },
         'default_config': {
-            'condition_type': 'equals'
+            'condition_field': 'intent',
+            'condition_operator': 'equals',
+            'condition_value': 'create_agent'
         },
         'input_ports': [
-            {'name': 'input', 'type': 'any', 'description': 'Value to evaluate', 'required': True}
+            {'name': 'input', 'type': 'any', 'description': 'Workflow state to evaluate', 'required': True}
         ],
         'output_ports': [
-            {'name': 'true', 'type': 'any', 'description': 'Output if condition is true', 'required': False},
-            {'name': 'false', 'type': 'any', 'description': 'Output if condition is false', 'required': False}
+            {'name': 'true', 'type': 'any', 'description': 'Path when condition is true', 'required': False},
+            {'name': 'false', 'type': 'any', 'description': 'Path when condition is false', 'required': False}
         ],
-        'implementation_class': 'app.workflow.nodes.condition_node.ConditionNode',
-        'tags': ['logic', 'condition', 'branching']
+        'implementation_class': 'app.workflow.nodes.if_else_node.IfElseNode',
+        'tags': ['logic', 'condition', 'branching', 'if_else']
+    },
+    {
+        'component_id': 'switch',
+        'name': 'SWITCH',
+        'category': 'Logic',
+        'description': 'Multi-case conditional branching with SWITCH logic',
+        'icon_name': 'PartitionOutlined',
+        'color': '#fa8c16',
+        'sort_order': 2,
+        'config_schema': {
+            'type': 'object',
+            'properties': {
+                'switch_field': {
+                    'type': 'string',
+                    'title': 'Field to Switch On',
+                    'description': 'Name of the field in workflow state to evaluate',
+                    'default': 'intent'
+                },
+                'switch_cases': {
+                    'type': 'array',
+                    'title': 'Switch Cases',
+                    'description': 'Array of case definitions with value, operator, and output handle',
+                    'items': {
+                        'type': 'object',
+                        'properties': {
+                            'value': {
+                                'type': 'string',
+                                'title': 'Case Value',
+                                'description': 'Value to match against'
+                            },
+                            'operator': {
+                                'type': 'string',
+                                'title': 'Operator',
+                                'description': 'Comparison operator',
+                                'enum': ['equals', 'not_equals', 'contains', 'not_contains', 'starts_with', 'ends_with', 'greater_than', 'less_than', 'greater_equal', 'less_equal', 'regex', 'is_empty', 'is_not_empty'],
+                                'default': 'equals'
+                            },
+                            'output': {
+                                'type': 'string',
+                                'title': 'Output Handle',
+                                'description': 'Name of the output handle to use when this case matches',
+                                'default': 'case_1'
+                            }
+                        },
+                        'required': ['value', 'operator', 'output']
+                    },
+                    'default': [
+                        {'value': 'create_agent', 'operator': 'equals', 'output': 'case_1'},
+                        {'value': 'update_agent', 'operator': 'equals', 'output': 'case_2'}
+                    ]
+                },
+                'default_case': {
+                    'type': 'string',
+                    'title': 'Default Case',
+                    'description': 'Output handle to use when no cases match',
+                    'default': 'default'
+                }
+            },
+            'required': ['switch_field', 'switch_cases', 'default_case']
+        },
+        'default_config': {
+            'switch_field': 'intent',
+            'switch_cases': [
+                {'value': 'create_agent', 'operator': 'equals', 'output': 'case_1'},
+                {'value': 'update_agent', 'operator': 'equals', 'output': 'case_2'}
+            ],
+            'default_case': 'default'
+        },
+        'input_ports': [
+            {'name': 'input', 'type': 'any', 'description': 'Workflow state to evaluate', 'required': True}
+        ],
+        'output_ports': [
+            {'name': 'case_1', 'type': 'any', 'description': 'Output for case 1', 'required': False},
+            {'name': 'case_2', 'type': 'any', 'description': 'Output for case 2', 'required': False},
+            {'name': 'default', 'type': 'any', 'description': 'Default output when no cases match', 'required': False}
+        ],
+        'implementation_class': 'app.workflow.nodes.switch_node.SwitchNode',
+        'tags': ['logic', 'condition', 'branching', 'switch', 'multi_case']
     },
     {
         'component_id': 'transform',

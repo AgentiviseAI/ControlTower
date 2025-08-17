@@ -18,6 +18,14 @@ class HTTPMethod(str, Enum):
     OPTIONS = "OPTIONS"
 
 
+class AuthMethod(str, Enum):
+    """Authentication methods enumeration"""
+    OBO = "OBO"
+    APP_KEY = "AppKey"
+    MSI = "MSI"
+    APP_ID_SECRET = "AppId+AppSecret"
+
+
 class RestAPIStatus(str, Enum):
     """REST API status enumeration"""
     ACTIVE = "active"
@@ -75,7 +83,7 @@ class RestAPICreateRequest(BaseModel):
     
     # Metadata
     tags: Optional[List[str]] = Field(default_factory=list, description="Tags for categorization")
-    required_permissions: Optional[List[str]] = Field(default_factory=list, description="Required permissions")
+    auth_method: Optional[AuthMethod] = Field(None, description="Authentication method")
     enabled: bool = Field(True, description="Whether API is enabled")
     
     # Performance and Documentation
@@ -124,7 +132,7 @@ class RestAPIUpdateRequest(BaseModel):
     
     # Metadata
     tags: Optional[List[str]] = Field(None, description="Tags for categorization")
-    required_permissions: Optional[List[str]] = Field(None, description="Required permissions")
+    auth_method: Optional[AuthMethod] = Field(None, description="Authentication method")
     enabled: Optional[bool] = Field(None, description="Whether API is enabled")
     status: Optional[RestAPIStatus] = Field(None, description="API status")
     
@@ -172,7 +180,7 @@ class RestAPIResponse(BaseModel):
     # Metadata
     tags: List[str] = Field(..., description="Tags for categorization")
     organization_id: str = Field(..., description="Organization ID")
-    required_permissions: List[str] = Field(..., description="Required permissions")
+    auth_method: Optional[AuthMethod] = Field(None, description="Authentication method")
     enabled: bool = Field(..., description="Whether API is enabled")
     status: str = Field(..., description="API status")
     

@@ -43,8 +43,8 @@ class RestAPI(BaseModel):
     # Metadata and Organization
     tags = Column(JSON, nullable=True, default=[])  # Tags for categorization
     
-    # Permissions and Status
-    required_permissions = Column(JSON, nullable=True, default=[])  # Required permissions
+    # Authentication and Status
+    auth_method = Column(String(50), nullable=True)  # Authentication method
     enabled = Column(Boolean, default=True, nullable=False)
     status = Column(String(50), default="active", nullable=False)  # active, inactive, error
     

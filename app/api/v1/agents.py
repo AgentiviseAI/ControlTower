@@ -108,12 +108,30 @@ async def update_agent(
 async def delete_agent(
     agent_id: str,
     auth: tuple = Depends(RequireAgentDelete),
-    agent_service: AIAgentService = Depends(get_ai_agent_service)
+    agent_service: AIAgentService = Depends(get_ai_agent_service),
+    workflow_service: WorkflowService = Depends(get_workflow_service),
+    transaction_manager: TransactionManager = Depends(get_transaction_manager)
 ):
-    """Delete an AI agent"""
+    """Delete an AI agent and all its associated workflows
+    
+    Args:
+        agent_id: The ID of the agent to delete
+    
+    Note: This will permanently delete the agent and ALL its associated workflows.
+    """
     user_id, organization_id = auth
+    
     try:
-        agent_service.delete_agent(UUID(agent_id), organization_id)
+        # Execute the deletion atomically (workflows are always deleted with the agent)
+        def atomic_agent_deletion():
+            return agent_service.delete_agent_with_workflows(
+                agent_id=UUID(agent_id),
+                organization_id=organization_id,
+                workflow_service=workflow_service
+            )
+        
+        transaction_manager.execute_atomic([atomic_agent_deletion])
+        
     except NotFoundError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
     except ValueError:

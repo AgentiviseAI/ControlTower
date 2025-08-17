@@ -44,6 +44,7 @@ def seed_security_roles():
                 "rag": ["create", "read", "update", "delete", "configure"],
                 "workflows": ["create", "read", "update", "delete", "deploy"],
                 "rest-apis": ["create", "read", "update", "delete"],
+                "intent-data": ["read"],
                 "metrics": ["read", "configure"],
                 "roles": ["create", "read", "update", "delete"]
             }
@@ -62,6 +63,7 @@ def seed_security_roles():
                 "rag": ["create", "read", "update", "delete", "configure"],
                 "workflows": ["create", "read", "update", "delete", "deploy"],
                 "rest-apis": ["create", "read", "update", "delete"],
+                "intent-data": ["read"],
                 "metrics": ["read", "configure"],
                 "roles": ["create", "read", "update", "delete"]
             }
@@ -80,6 +82,7 @@ def seed_security_roles():
                 "rag": ["read"],
                 "workflows": ["read", "execute"],
                 "rest-apis": ["read"],
+                "intent-data": ["read"],
                 "metrics": ["read"]
             }
         )
@@ -97,6 +100,7 @@ def seed_security_roles():
                 "rag": ["read"],
                 "workflows": ["read"],
                 "rest-apis": ["read"],
+                "intent-data": ["read"],
                 "metrics": ["read"]
             }
         )

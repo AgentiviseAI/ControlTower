@@ -7,6 +7,7 @@ import aiohttp
 from typing import List, Optional, Dict, Any, Union
 from uuid import UUID
 from app.repositories import RestAPIRepository
+from app.repositories.intent_data_repository import IntentDataRepository
 from app.core.exceptions import NotFoundError, ConflictError, ValidationException
 from .base import BaseService
 
@@ -14,8 +15,52 @@ from .base import BaseService
 class RestAPIService(BaseService):
     """Service for REST API business logic"""
     
-    def __init__(self, repository: RestAPIRepository):
+    def __init__(self, repository: RestAPIRepository, intent_data_repository: Optional[IntentDataRepository] = None):
         super().__init__(repository)
+        self.intent_data_repository = intent_data_repository
+    
+    def _create_intent_data_for_api(self, organization_id: str, api_id: str, api_name: str, api_description: str = None):
+        """Helper method to create intent data for REST API"""
+        if self.intent_data_repository:
+            try:
+                intent_data = self.intent_data_repository.create(
+                    organization_id=organization_id,
+                    name=f"API: {api_name}",
+                    description=api_description or f"Intent data for REST API: {api_name}",
+                    source_type="rest_api",
+                    source_id=api_id,
+                    category="API",
+                    enabled=True
+                )
+                self.logger.info(f"Created intent data for REST API: {api_name}")
+            except Exception as e:
+                self.logger.error(f"Failed to create intent data for REST API {api_name}: {e}")
+    
+    def _update_intent_data_for_api(self, organization_id: str, api_id: str, api_name: str, api_description: str = None):
+        """Helper method to update intent data for REST API"""
+        if self.intent_data_repository:
+            try:
+                # Find existing intent data for this REST API
+                intent_data_list = self.intent_data_repository.list_by_source_type(organization_id, "rest_api")
+                for intent_data in intent_data_list:
+                    if intent_data.source_id == api_id:
+                        intent_data.name = f"API: {api_name}"
+                        intent_data.description = api_description or f"Intent data for REST API: {api_name}"
+                        self.intent_data_repository.update(intent_data)
+                        self.logger.info(f"Updated intent data for REST API: {api_name}")
+                        break
+            except Exception as e:
+                self.logger.error(f"Failed to update intent data for REST API {api_name}: {e}")
+    
+    def _delete_intent_data_for_api(self, organization_id: str, api_id: str):
+        """Helper method to delete intent data for REST API"""
+        if self.intent_data_repository:
+            try:
+                deleted_count = self.intent_data_repository.delete_by_source(organization_id, "rest_api", api_id)
+                if deleted_count > 0:
+                    self.logger.info(f"Deleted {deleted_count} intent data records for REST API: {api_id}")
+            except Exception as e:
+                self.logger.error(f"Failed to delete intent data for REST API {api_id}: {e}")
     
     def create_api(self, organization_id: str, name: str, base_url: str, method: str = "GET",
                    description: str = None, version: str = "v1", resource_path: str = None,
@@ -23,7 +68,7 @@ class RestAPIService(BaseService):
                    headers: Dict[str, str] = None, auth_headers: Dict[str, str] = None,
                    cookies: Dict[str, str] = None, query_params: Dict[str, Any] = None,
                    path_params: Dict[str, Any] = None, tags: List[str] = None,
-                   required_permissions: List[str] = None, enabled: bool = True,
+                   auth_method: str = None, enabled: bool = True,
                    openapi_spec_url: str = None, operation_id: str = None,
                    rate_limit: Dict[str, Any] = None, timeout: Dict[str, int] = None,
                    documentation_url: str = None, examples: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -64,7 +109,7 @@ class RestAPIService(BaseService):
             operation_id=operation_id,
             tags=tags or [],
             organization_id=organization_id,
-            required_permissions=required_permissions or [],
+            auth_method=auth_method,
             enabled=enabled,
             status="active",
             rate_limit=rate_limit,
@@ -72,6 +117,9 @@ class RestAPIService(BaseService):
             documentation_url=documentation_url,
             examples=examples or {}
         )
+        
+        # Create intent data for the new REST API
+        self._create_intent_data_for_api(organization_id, str(api.id), name, description)
         
         return self._to_dict(api)
     
@@ -313,15 +361,29 @@ class RestAPIService(BaseService):
         if not api:
             raise NotFoundError("REST API", api_id)
         
+        # Update intent data if name or description changed
+        if 'name' in kwargs or 'description' in kwargs:
+            self._update_intent_data_for_api(api.organization_id, api_id, api.name, api.description)
+        
         return self._to_dict(api)
     
     def delete_api(self, api_id: str) -> bool:
         """Delete REST API"""
         self.logger.info(f"Deleting REST API: {api_id}")
         
+        # Get the API first to retrieve organization_id
+        api = self.repository.get_by_id(api_id)
+        if not api:
+            raise NotFoundError("REST API", api_id)
+        
+        organization_id = api.organization_id
+        
         success = self.repository.delete(api_id)
         if not success:
             raise NotFoundError("REST API", api_id)
+        
+        # Delete associated intent data
+        self._delete_intent_data_for_api(organization_id, api_id)
         
         return success
     
